@@ -24,6 +24,10 @@ module.exports = {
 		...getWebpackEntryPoints('script')(),
 	},
   devtool: devtool,
+  plugins: [
+    ...defaultConfig.plugins,
+    require('autoprefixer'),
+  ],
   module: {
     ...defaultConfig.module,
     rules: [

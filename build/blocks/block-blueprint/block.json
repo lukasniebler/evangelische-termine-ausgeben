@@ -13,6 +13,14 @@
     "title": {
       "type": "string",
       "default": "Blueprint"
+    },
+    "id": {
+      "type": "string",
+      "default": "562"
+    },
+    "limit": {
+      "type": "number",
+      "default": 10
     }
   },
   "textdomain": "evangelische-termine-ausgeben",

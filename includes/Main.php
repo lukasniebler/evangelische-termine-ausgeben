@@ -25,6 +25,7 @@ class Main
     {
         $this->pluginFile = $pluginFile;
         new Blocks();
+        new DataFetcher();
     }
 
     /**

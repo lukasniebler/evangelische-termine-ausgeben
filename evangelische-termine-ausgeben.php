@@ -82,7 +82,7 @@ function systemRequirements()
  */
 function activation()
 {
-    loadTextdomain();
+    // loadTextdomain();
 
     if ($error = systemRequirements()) {
         deactivate_plugins(plugin_basename(__FILE__), false, true);
