@@ -37,6 +37,10 @@
     "searchText": {
       "type": "string",
       "default": ""
+    },
+    "heading": {
+      "type": "string",
+      "default": "Veranstaltungen"
     }
   },
   "textdomain": "evangelische-termine-ausgeben",

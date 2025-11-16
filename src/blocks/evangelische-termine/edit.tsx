@@ -106,6 +106,7 @@ interface Attributes {
   people?: string;
   placeType?: string;
   searchText?: string;
+  heading?: string;
 }
 
 export default function Edit({
@@ -123,6 +124,7 @@ export default function Edit({
     people = "",
     placeType = "",
     searchText = "",
+    heading = "Veranstaltungen",
   } = attributes;
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -307,6 +309,15 @@ export default function Edit({
       <InspectorControls>
         <PanelBody title={__("Einstellungen", "evangelische-termine-ausgeben")}>
           <TextControl
+            label={__("Überschrift", "evangelische-termine-ausgeben")}
+            value={heading}
+            onChange={(value) => setAttributes({ heading: value })}
+            help={__(
+              "Leer lassen, um keine Überschrift anzuzeigen.",
+              "evangelische-termine-ausgeben"
+            )}
+          />
+          <TextControl
             label={__("Veranstalter ID", "evangelische-termine-ausgeben")}
             value={id}
             onChange={(value) => setAttributes({ id: value })}
@@ -358,7 +369,7 @@ export default function Edit({
         </PanelBody>
       </InspectorControls>
       <div {...props}>
-        <h2>{__("Events", "evangelische-termine-ausgeben")}</h2>
+        {heading && <h2>{heading}</h2>}
         {loading && (
           <p>
             {__("Lade Veranstaltungen...", "evangelische-termine-ausgeben")}

@@ -21,6 +21,7 @@ class BlockRender
             'people' => '',
             'placeType' => '',
             'searchText' => '',
+            'heading' => __('Veranstaltungen', 'evangelische-termine-ausgeben'),
         ];
 
         $attributes = wp_parse_args($attributes, $defaults);
@@ -43,10 +44,11 @@ class BlockRender
         $events = $this->filter_by_place_type($events, $attributes['placeType']);
         $events = $this->filter_by_search($events, $attributes['searchText']);
 
+        $heading = trim((string) ($attributes['heading'] ?? ''));
         if (empty($events)) {
             $content = sprintf(
-                '<h2>%1$s</h2><p>%2$s</p>',
-                esc_html__('Events', 'evangelische-termine-ausgeben'),
+                '%1$s<p>%2$s</p>',
+                $heading !== '' ? '<h2>' . esc_html($heading) . '</h2>' : '',
                 esc_html__('Keine Veranstaltungen gefunden.', 'evangelische-termine-ausgeben')
             );
             return $this->render_wrapper($content);
@@ -89,9 +91,10 @@ class BlockRender
             return $dt . $dateMarkup . $timeMarkup . $locationMarkup;
         }, $events);
 
+        $headingMarkup = $heading !== '' ? '<h2>' . esc_html($heading) . '</h2>' : '';
         $content = sprintf(
-            '<h2>%1$s</h2><dl>%2$s</dl>',
-            esc_html__('Events', 'evangelische-termine-ausgeben'),
+            '%1$s<dl>%2$s</dl>',
+            $headingMarkup,
             implode('', $items)
         );
 
