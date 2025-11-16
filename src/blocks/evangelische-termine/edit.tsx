@@ -16,6 +16,7 @@ interface Event {
   datum?: string;
   startRFC?: string;
   startTime?: string;
+  endTime?: string;
   placeCategory?: string;
   shortDescription?: string;
   longDescription?: string;
@@ -40,6 +41,7 @@ interface ApiVeranstaltung {
     DATUM?: string;
     START_RFC?: string;
     START_UHRZEIT?: string;
+    END_UHRZEIT?: string;
     LITURG_BEZ?: string;
     WOCHENTAG_START_LANG?: string;
     WOCHENTAG_START_KURZ?: string;
@@ -97,6 +99,16 @@ const stripTimeFromDatum = (datum?: string) => {
     /\s+\d{1,2}(?:[.:]\d{1,2})?(?:\s*-\s*\d{1,2}(?:[.:]\d{1,2})?)?\s*uhr/gi;
   const clean = datum.replace(pattern, "").trim();
   return clean || datum;
+};
+
+const normalizeTime = (time?: string) =>
+  time ? time.replace(".", ":") : undefined;
+
+const buildTimeText = (start?: string, end?: string) => {
+  if (start && end) {
+    return `${start} - ${end}`;
+  }
+  return start || end || undefined;
 };
 
 interface Attributes {
@@ -250,9 +262,8 @@ export default function Edit({
           title: item.Veranstaltung._event_TITLE,
           datum: item.Veranstaltung.DATUM,
           startRFC: item.Veranstaltung.START_RFC,
-          startTime: item.Veranstaltung.START_UHRZEIT
-            ? item.Veranstaltung.START_UHRZEIT.replace(".", ":")
-            : undefined,
+          startTime: normalizeTime(item.Veranstaltung.START_UHRZEIT),
+          endTime: normalizeTime(item.Veranstaltung.END_UHRZEIT),
           placeCategory: item.Veranstaltung._place_KAT,
           shortDescription: item.Veranstaltung._event_SHORT_DESCRIPTION,
           longDescription: item.Veranstaltung._event_LONG_DESCRIPTION,
@@ -379,7 +390,7 @@ export default function Edit({
         <dl>
           {events.map((event) => {
             const displayDate = stripTimeFromDatum(event.datum);
-            const shouldShowTime = Boolean(event.startTime);
+            const timeText = buildTimeText(event.startTime, event.endTime);
             return (
               <Fragment key={event.id}>
                 <dt>
@@ -404,9 +415,9 @@ export default function Edit({
                     <span className="ln-eta-date-text">{displayDate}</span>
                   </dd>
                 )}
-                {shouldShowTime && (
+                {timeText && (
                   <dd className="ln-eta-time">
-                    <span className="ln-eta-time-text">{event.startTime}</span>
+                    <span className="ln-eta-time-text">{timeText}</span>
                   </dd>
                 )}
                 {event.location && (

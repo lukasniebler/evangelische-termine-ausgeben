@@ -62,6 +62,10 @@ class BlockRender
             if (!empty($veranstaltung['START_UHRZEIT'])) {
                 $startTime = esc_html(str_replace('.', ':', $veranstaltung['START_UHRZEIT']));
             }
+            $endTime = '';
+            if (!empty($veranstaltung['END_UHRZEIT'])) {
+                $endTime = esc_html(str_replace('.', ':', $veranstaltung['END_UHRZEIT']));
+            }
 
             $detailUrl = $this->build_detail_url($veranstaltung['ID'] ?? '');
             $titleMarkup = $title;
@@ -77,10 +81,11 @@ class BlockRender
             $cleanDate = $this->strip_time_from_datum($datum);
             $dateMarkup = $cleanDate ? sprintf('<dd class="ln-eta-date"><span class="ln-eta-date-text">%s</span></dd>', $cleanDate) : '';
             $timeMarkup = '';
-            if ($startTime) {
+            $timeText = $this->build_time_text($startTime, $endTime);
+            if ($timeText !== '') {
                 $timeMarkup = sprintf(
                     '<dd class="ln-eta-time"><span class="ln-eta-time-text">%s</span></dd>',
-                    $startTime
+                    esc_html($timeText)
                 );
             }
             $locationText = $this->build_location_text($veranstaltung);
@@ -265,6 +270,23 @@ class BlockRender
         $clean = preg_replace($pattern, '', $trimmed);
 
         return $clean !== null ? trim($clean) : $trimmed;
+    }
+
+    private function build_time_text(string $startTime, string $endTime): string
+    {
+        if ($startTime !== '' && $endTime !== '') {
+            return sprintf('%s - %s', $startTime, $endTime);
+        }
+
+        if ($startTime !== '') {
+            return $startTime;
+        }
+
+        if ($endTime !== '') {
+            return $endTime;
+        }
+
+        return '';
     }
 
     private function load_place_types(): void
