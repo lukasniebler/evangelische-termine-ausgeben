@@ -1,0 +1,151 @@
+$eta-accent: #0a5ea8;
+$eta-border: #e0e8f4;
+$eta-divider: #d7deea;
+$eta-muted: #4a5568;
+$eta-strong: #192033;
+
+.wp-block-evangelische-termine-ausgeben-evangelische-termine {
+  --eta-accent: #{$eta-accent};
+  background-color: #fff;
+  border: 1px solid $eta-border;
+  border-radius: 1rem;
+  padding: clamp(1rem, 4vw, 2.25rem);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  h2 {
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
+    margin: 0 0 1rem;
+    color: $eta-strong;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  dl {
+    margin: 0;
+  }
+
+  dt {
+    margin: 0;
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid $eta-divider;
+
+    &:first-of-type {
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    strong {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+      color: $eta-strong;
+      font-weight: 600;
+
+      a {
+        color: inherit;
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        transition: border-color 0.2s ease, color 0.2s ease;
+
+        &:hover,
+        &:focus-visible {
+          color: var(--eta-accent);
+          border-color: rgba($eta-accent, 0.35);
+          outline: none;
+        }
+      }
+    }
+  }
+
+  dd {
+    margin: 0.2rem 0 0.25rem;
+    color: $eta-muted;
+    line-height: 1.4;
+    font-size: 0.95rem;
+
+    span {
+      display: inline-block;
+    }
+
+    &.ln-eta-date {
+      .ln-eta-date-text {
+        font-weight: 500;
+      }
+    }
+
+    &.ln-eta-time {
+      .ln-eta-time-text {
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+    }
+
+    &.ln-eta-location {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin-top: 0.4rem;
+      font-weight: 500;
+      color: $eta-strong;
+
+      &::before {
+        content: "";
+        width: 0.5rem;
+        height: 0.5rem;
+        margin-top: 0.4rem;
+        border-radius: 999px;
+        background: var(--eta-accent);
+        box-shadow: 0 0 0 4px rgba($eta-accent, 0.15);
+      }
+
+      .ln-eta-location-text {
+        flex: 1;
+      }
+    }
+  }
+
+  a {
+    color: var(--eta-accent);
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+      outline: none;
+    }
+  }
+
+  .ln-eta-error {
+    margin: 0;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background: rgba(220, 38, 38, 0.08);
+    color: #991b1b;
+    font-weight: 600;
+  }
+
+  @media (min-width: 640px) {
+    dl {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 1.75rem;
+    }
+
+    dt,
+    dd {
+      padding-right: 1rem;
+    }
+
+    dt {
+      grid-column: 1 / 3;
+    }
+
+    dd {
+      grid-column: 1 / 3;
+    }
+  }
+}

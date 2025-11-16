@@ -1,0 +1,70 @@
+{
+	"name": "evangelische-termine-ausgeben",
+	"version": "1.0.0",
+	"description": "RRZE Elements: Gestalterische Erweiterungen für den BlockEditor",
+	"main": "build/index.js",
+	"textdomain": "evangelische-termine-ausgeben",
+	"license": "GPL-3.0-or-later",
+	"private": true,
+	"scripts": {
+		"build": "wp-scripts build",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint": "eslint 'src/**/*.{js,jsx,ts,tsx}'",
+		"packages-update": "wp-scripts packages-update",
+		"plugin-zip": "wp-scripts plugin-zip",
+		"start": "wp-scripts start",
+		"update-version": "node update-version.js && npm run build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/lukasniebler/evangelische-termine-ausgeben",
+		"issues": "https://github.com/lukasniebler/evangelische-termine-ausgeben/issues",
+		"clone": "git+https://github.com/lukasniebler/evangelische-termine-ausgeben.git"
+	},
+	"browserslist": [
+		"last 3 years",
+		"ie 11"
+	],
+	"author": {
+		"name": "Lukas Niebler <nieblerlukas@tutanota.com>",
+		"url": "https://lukas-niebler.de"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.26.0",
+		"@babel/preset-env": "^7.26.0",
+		"@babel/preset-react": "^7.26.3",
+		"@eslint/eslintrc": "^3.2.0",
+		"@eslint/js": "^9.16.0",
+		"@headlessui/react": "^2.2.0",
+		"@types/wordpress__block-editor": "^11.5.16",
+		"@types/wordpress__blocks": "^12.5.16",
+		"@typescript-eslint/eslint-plugin": "^8.18.0",
+		"@typescript-eslint/parser": "^8.18.0",
+		"@wordpress/api-fetch": "^7.14.0",
+		"@wordpress/babel-plugin-makepot": "^6.14.0",
+		"@wordpress/compose": "^7.14.0",
+		"@wordpress/data": "^10.14.0",
+		"@wordpress/e2e-test-utils-playwright": "^1.14.0",
+		"@wordpress/eslint-plugin": "^22.0.0",
+		"@wordpress/i18n": "^5.14.0",
+		"@wordpress/icons": "^10.14.0",
+		"@wordpress/keycodes": "^4.14.0",
+		"@wordpress/notices": "^5.14.0",
+		"@wordpress/scripts": "^30.7.0",
+		"@wordpress/server-side-render": "^5.14.0",
+		"autoprefixer": "^10.4.20",
+		"babel-loader": "^9.2.1",
+		"dotenv": "^16.4.7",
+		"eslint": "^9.16.0",
+		"eslint-plugin-react": "^7.37.2",
+		"eslint-plugin-tsdoc": "^0.4.0",
+		"tailwindcss": "^3.4.17",
+		"ts-loader": "^9.5.1",
+		"typescript": "^5.7.2"
+	},
+	"dependencies": {
+		"@heroicons/react": "^2.2.0",
+		"postcss": "^8.4.49"
+	}
+}

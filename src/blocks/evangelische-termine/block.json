@@ -1,0 +1,50 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "evangelische-termine-ausgeben/evangelische-termine",
+  "version": "1.0.0",
+  "title": "Evangelische Termine",
+  "category": "design",
+  "description": "Outputs Events from Evangelische Termine.",
+  "supports": {
+    "html": false
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "default": "Blueprint"
+    },
+    "id": {
+      "type": "string",
+      "default": "562"
+    },
+    "limit": {
+      "type": "number",
+      "default": 10
+    },
+    "eventType": {
+      "type": "string",
+      "default": ""
+    },
+    "people": {
+      "type": "string",
+      "default": ""
+    },
+    "placeType": {
+      "type": "string",
+      "default": ""
+    },
+    "searchText": {
+      "type": "string",
+      "default": ""
+    },
+    "heading": {
+      "type": "string",
+      "default": "Veranstaltungen"
+    }
+  },
+  "textdomain": "evangelische-termine-ausgeben",
+  "editorScript": "file:./index.ts",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css"
+}
