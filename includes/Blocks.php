@@ -28,13 +28,13 @@ class Blocks
     private function evangelische_termine_ausgeben_register_blocks_and_translations()
     {
         $blocks = [
-            'block-blueprint'
+            'evangelische-termine'
         ];
 
         foreach ($blocks as $block) {
             $args = [];
 
-            if ($block === 'block-blueprint') {
+            if ($block === 'evangelische-termine') {
                 $args['render_callback'] = [$this->renderer, 'render_block_blueprint'];
             }
 

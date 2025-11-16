@@ -1,0 +1,11 @@
+@use './style';
+
+.editor-styles-wrapper {
+  .wp-block-evangelische-termine-ausgeben-evangelische-termine {
+    position: relative;
+
+    &:focus-within {
+      box-shadow: 0 0 0 2px rgba(10, 94, 168, 0.45);
+    }
+  }
+}

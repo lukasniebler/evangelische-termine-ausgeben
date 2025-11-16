@@ -6,7 +6,7 @@ import {
   RangeControl,
   SelectControl,
 } from "@wordpress/components";
-import { useEffect, useMemo, useState } from "@wordpress/element";
+import { Fragment, useEffect, useMemo, useState } from "@wordpress/element";
 import apiFetch from "@wordpress/api-fetch";
 import { __ } from "@wordpress/i18n";
 
@@ -19,6 +19,8 @@ interface Event {
   placeCategory?: string;
   shortDescription?: string;
   longDescription?: string;
+  location?: string;
+  detailsUrl?: string;
 }
 
 interface SelectOption {
@@ -44,9 +46,48 @@ interface ApiVeranstaltung {
     _place_KAT?: string;
     _event_SHORT_DESCRIPTION?: string;
     _event_LONG_DESCRIPTION?: string;
+    _place_NAME?: string;
+    _place_STREET_NR?: string;
+    _place_ZIP?: string;
+    _place_CITY?: string;
 
   };
 }
+
+const buildLocation = (
+  veranstaltung: ApiVeranstaltung["Veranstaltung"]
+): string | undefined => {
+  const parts: string[] = [];
+  if (veranstaltung._place_NAME) {
+    parts.push(veranstaltung._place_NAME);
+  }
+
+  const addressSegments: string[] = [];
+  if (veranstaltung._place_STREET_NR) {
+    addressSegments.push(veranstaltung._place_STREET_NR);
+  }
+
+  const citySegment = [
+    veranstaltung._place_ZIP,
+    veranstaltung._place_CITY,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  if (citySegment) {
+    addressSegments.push(citySegment);
+  }
+
+  if (addressSegments.length) {
+    parts.push(addressSegments.join(", "));
+  }
+
+  if (!parts.length) {
+    return undefined;
+  }
+
+  return parts.join(", ");
+};
 
 interface Attributes {
   id: string;
@@ -203,6 +244,10 @@ export default function Edit({
           placeCategory: item.Veranstaltung._place_KAT,
           shortDescription: item.Veranstaltung._event_SHORT_DESCRIPTION,
           longDescription: item.Veranstaltung._event_LONG_DESCRIPTION,
+          location: buildLocation(item.Veranstaltung),
+          detailsUrl: item.Veranstaltung.ID
+            ? `https://www.evangelische-termine.de/d-${item.Veranstaltung.ID}`
+            : undefined,
         }));
         let filteredEvents = transformedEvents;
         if (placeType && selectedPlaceLabel) {
@@ -312,13 +357,32 @@ export default function Edit({
         {error && <p style={{ color: "red" }}>{error}</p>}
         <dl>
           {events.map((event) => (
-            <>
-              <dt key={event.id}>
-                <strong>{event.title}</strong>
+            <Fragment key={event.id}>
+              <dt>
+                {event.title && (
+                  <strong>
+                    {event.detailsUrl ? (
+                      <a
+                        href={event.detailsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {event.title}
+                      </a>
+                    ) : (
+                      event.title
+                    )}
+                  </strong>
+                )}
               </dt>
 			  <dd>{event.datum && <br />}{event.datum && <span>{event.datum}</span>}</dd>
-              <dd key={`${event.id}-dd`}>{event.startTime && <span>{event.startTime}</span>}</dd>
-            </>
+              <dd>{event.startTime && <span>{event.startTime}</span>}</dd>
+              {event.location && (
+                <dd className="ln-eta-location">
+                  <span>{event.location}</span>
+                </dd>
+              )}
+            </Fragment>
           ))}
         </dl>
       </div>

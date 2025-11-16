@@ -61,11 +61,25 @@ class BlockRender
                 $startTime = esc_html(str_replace('.', ':', $veranstaltung['START_UHRZEIT']));
             }
 
-            $dt = sprintf('<dt>%s</dt>', $title ? '<strong>' . $title . '</strong>' : '');
+            $detailUrl = $this->build_detail_url($veranstaltung['ID'] ?? '');
+            $titleMarkup = $title;
+            if ($title && $detailUrl) {
+                $titleMarkup = sprintf(
+                    '<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+                    esc_url($detailUrl),
+                    $title
+                );
+            }
+
+            $dt = sprintf('<dt>%s</dt>', $titleMarkup ? '<strong>' . $titleMarkup . '</strong>' : '');
             $dateMarkup = $datum ? sprintf('<dd><br /><span>%s</span></dd>', $datum) : '<dd></dd>';
             $timeMarkup = $startTime ? sprintf('<dd><span>%s</span></dd>', $startTime) : '<dd></dd>';
+            $locationText = $this->build_location_text($veranstaltung);
+            $locationMarkup = $locationText !== ''
+                ? sprintf('<dd class="ln-eta-location"><span>%s</span></dd>', esc_html($locationText))
+                : '';
 
-            return $dt . $dateMarkup . $timeMarkup;
+            return $dt . $dateMarkup . $timeMarkup . $locationMarkup;
         }, $events);
 
         $content = sprintf(
@@ -190,6 +204,46 @@ class BlockRender
         return $this->placeTypeMap[$placeType] ?? null;
     }
 
+    private function build_detail_url(string $eventId): string
+    {
+        $eventId = trim($eventId);
+        if ($eventId === '') {
+            return '';
+        }
+
+        return sprintf('https://www.evangelische-termine.de/d-%s', rawurlencode($eventId));
+    }
+
+    private function build_location_text(array $veranstaltung): string
+    {
+        $parts = [];
+        if (!empty($veranstaltung['_place_NAME'])) {
+            $parts[] = (string) $veranstaltung['_place_NAME'];
+        }
+
+        $addressSegments = [];
+        if (!empty($veranstaltung['_place_STREET_NR'])) {
+            $addressSegments[] = (string) $veranstaltung['_place_STREET_NR'];
+        }
+
+        $citySegment = trim(sprintf(
+            '%s %s',
+            $veranstaltung['_place_ZIP'] ?? '',
+            $veranstaltung['_place_CITY'] ?? ''
+        ));
+        if ($citySegment !== '') {
+            $addressSegments[] = $citySegment;
+        }
+
+        if (!empty($addressSegments)) {
+            $parts[] = implode(', ', $addressSegments);
+        }
+
+        return trim(implode(', ', array_filter($parts, function ($part) {
+            return $part !== '';
+        })));
+    }
+
     private function load_place_types(): void
     {
         $this->placeTypesLoaded = true;
@@ -220,4 +274,3 @@ class BlockRender
         return sprintf('<div %s>%s</div>', $wrapperAttributes, $content);
     }
 }
-
