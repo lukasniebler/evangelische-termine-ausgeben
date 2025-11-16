@@ -6,7 +6,7 @@ import {
   RangeControl,
   SelectControl,
 } from "@wordpress/components";
-import { useEffect, useState } from "@wordpress/element";
+import { useEffect, useMemo, useState } from "@wordpress/element";
 import apiFetch from "@wordpress/api-fetch";
 import { __ } from "@wordpress/i18n";
 
@@ -16,6 +16,7 @@ interface Event {
   datum?: string;
   startRFC?: string;
   startTime?: string;
+  placeCategory?: string;
 }
 
 interface SelectOption {
@@ -38,6 +39,7 @@ interface ApiVeranstaltung {
     LITURG_BEZ?: string;
     WOCHENTAG_START_LANG?: string;
     WOCHENTAG_START_KURZ?: string;
+    _place_KAT?: string;
 
   };
 }
@@ -89,6 +91,15 @@ export default function Edit({
   const [placeTypeOptions, setPlaceTypeOptions] = useState<SelectOption[]>([
     { label: placeTypeLabel, value: "" },
   ]);
+  const selectedPlaceLabel = useMemo(() => {
+    if (!placeType) {
+      return null;
+    }
+    const selectedOption = placeTypeOptions.find(
+      (option) => option.value === placeType && option.value !== ""
+    );
+    return selectedOption?.label ?? null;
+  }, [placeTypeOptions, placeType]);
 
   useEffect(() => {
     let isMounted = true;
@@ -147,6 +158,9 @@ export default function Edit({
 
   useEffect(() => {
     if (!id) return;
+    if (placeType && !selectedPlaceLabel) {
+      return;
+    }
 
     setLoading(true);
 
@@ -180,8 +194,15 @@ export default function Edit({
           startTime: item.Veranstaltung.START_UHRZEIT
             ? item.Veranstaltung.START_UHRZEIT.replace(".", ":")
             : undefined,
+          placeCategory: item.Veranstaltung._place_KAT,
         }));
-        setEvents(transformedEvents);
+        const filteredEvents =
+          placeType && selectedPlaceLabel
+            ? transformedEvents.filter(
+                (event) => event.placeCategory === selectedPlaceLabel
+              )
+            : transformedEvents;
+        setEvents(filteredEvents);
         setError(null);
         setLoading(false);
       })
@@ -195,7 +216,14 @@ export default function Edit({
         );
         setLoading(false);
       });
-  }, [id, limit, eventType, people, placeType]);
+  }, [
+    id,
+    limit,
+    eventType,
+    people,
+    placeType,
+    selectedPlaceLabel,
+  ]);
 
   return (
     <>
