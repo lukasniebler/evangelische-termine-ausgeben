@@ -353,17 +353,53 @@ export default function Edit({
             options={eventTypeOptions}
             onChange={(value: string) => setAttributes({ eventType: value })}
           />
+          <TextControl
+              label={__(
+                  "Veranstaltungstyp",
+                  "evangelische-termine-ausgeben"
+              )}
+              value={eventType}
+              onChange={(value) => setAttributes({ eventType: value })}
+              help={__(
+                  "Ermöglicht die Nutzung von negativen Filterwerten (NICHT), Komma-separierten Filtern (ODER) und Punkt-separierten Filtern (UND).",
+                  "evangelische-termine-ausgeben"
+              )}
+          />
           <SelectControl
             label={__("Zielgruppe", "evangelische-termine-ausgeben")}
             value={people}
             options={peopleOptions}
             onChange={(value: string) => setAttributes({ people: value })}
           />
+          <TextControl
+              label={__(
+                  "Zielgruppe",
+                  "evangelische-termine-ausgeben"
+              )}
+              value={people}
+              onChange={(value) => setAttributes({ people: value })}
+              help={__(
+                  "Ermöglicht die Nutzung von negativen Filterwerten (NICHT), Komma-separierten Filtern (ODER) und Punkt-separierten Filtern (UND).",
+                  "evangelische-termine-ausgeben"
+              )}
+          />
           <SelectControl
             label={__("Ortskategorie", "evangelische-termine-ausgeben")}
             value={placeType}
             options={placeTypeOptions}
             onChange={(value: string) => setAttributes({ placeType: value })}
+          />
+          <TextControl
+              label={__(
+                  "Ortskategorie",
+                  "evangelische-termine-ausgeben"
+              )}
+              value={placeType}
+              onChange={(value) => setAttributes({ placeType: value })}
+              help={__(
+                  "Ermöglicht die Nutzung von negativen Filterwerten (NICHT), Komma-separierten Filtern (ODER) und Punkt-separierten Filtern (UND).",
+                  "evangelische-termine-ausgeben"
+              )}
           />
           <TextControl
             label={__(
@@ -399,7 +435,6 @@ export default function Edit({
                       {event.detailsUrl ? (
                         <a
                           href={event.detailsUrl}
-                          target="_blank"
                           rel="noopener noreferrer"
                         >
                           {event.title}
