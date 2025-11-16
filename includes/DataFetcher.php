@@ -24,7 +24,7 @@ class DataFetcher
         'placetype'      => 'http://www.evangelische-termine.de/service/placetype.json',
         'kat'            => 'http://www.evangelische-termine.de/service/kat.json',
         'regions'        => 'http://www.evangelische-termine.de/service/regions.json',
-        'events'         => 'https://www.evangelische-termine.de/json', // Mit Parametern (z.B. vid=XXX)
+        'events'         => 'https://www.evangelische-termine.de/json',
     ];
 
     public function __construct()
@@ -56,11 +56,6 @@ class DataFetcher
                 'sanitize_callback' => 'sanitize_text_field',
                 'description'       => 'Veranstaltungs-ID',
             ],
-            // Weitere Parameter können dynamisch verwendet werden.
-            // Beispiel: vid, eventtype, people, date, etc.
-            // Diese Parameter werden nicht explizit vordefiniert,
-            // sondern dynamisch durchgereicht. Trotzdem können Sie bei Bedarf
-            // Validierungs- und Sanitisierungsfunktionen hinzufügen.
         ];
     }
 
@@ -139,7 +134,6 @@ class DataFetcher
             }
         }
 
-        // Daten cachen
         set_transient($transient_key, $data, self::TRANSIENT_LIFETIME);
         
         error_log('API response: ' . print_r($data, true));

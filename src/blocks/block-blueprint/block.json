@@ -1,11 +1,11 @@
 {
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 3,
-  "name": "evangelische-termine-ausgeben/block-blueprint",
+  "name": "evangelische-termine-ausgeben/evangelische-termine",
   "version": "1.0.0",
-  "title": "Blueprint",
+  "title": "Evangelische Termine",
   "category": "design",
-  "description": "Creates a blueprint block.",
+  "description": "Outputs Events from Evangelische Termine.",
   "supports": {
     "html": false
   },
@@ -21,6 +21,18 @@
     "limit": {
       "type": "number",
       "default": 10
+    },
+    "eventType": {
+      "type": "string",
+      "default": ""
+    },
+    "people": {
+      "type": "string",
+      "default": ""
+    },
+    "placeType": {
+      "type": "string",
+      "default": ""
     }
   },
   "textdomain": "evangelische-termine-ausgeben",
