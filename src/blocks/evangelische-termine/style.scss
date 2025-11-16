@@ -70,6 +70,20 @@ $eta-strong: #192033;
       display: inline-block;
     }
 
+    &.ln-eta-date {
+      .ln-eta-date-text {
+        font-weight: 500;
+      }
+    }
+
+    &.ln-eta-time {
+      .ln-eta-time-text {
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+    }
+
     &.ln-eta-location {
       display: flex;
       gap: 0.5rem;
@@ -86,6 +100,10 @@ $eta-strong: #192033;
         border-radius: 999px;
         background: var(--eta-accent);
         box-shadow: 0 0 0 4px rgba($eta-accent, 0.15);
+      }
+
+      .ln-eta-location-text {
+        flex: 1;
       }
     }
   }

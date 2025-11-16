@@ -72,11 +72,18 @@ class BlockRender
             }
 
             $dt = sprintf('<dt>%s</dt>', $titleMarkup ? '<strong>' . $titleMarkup . '</strong>' : '');
-            $dateMarkup = $datum ? sprintf('<dd><br /><span>%s</span></dd>', $datum) : '<dd></dd>';
-            $timeMarkup = $startTime ? sprintf('<dd><span>%s</span></dd>', $startTime) : '<dd></dd>';
+            $cleanDate = $this->strip_time_from_datum($datum);
+            $dateMarkup = $cleanDate ? sprintf('<dd class="ln-eta-date"><span class="ln-eta-date-text">%s</span></dd>', $cleanDate) : '';
+            $timeMarkup = '';
+            if ($startTime) {
+                $timeMarkup = sprintf(
+                    '<dd class="ln-eta-time"><span class="ln-eta-time-text">%s</span></dd>',
+                    $startTime
+                );
+            }
             $locationText = $this->build_location_text($veranstaltung);
             $locationMarkup = $locationText !== ''
-                ? sprintf('<dd class="ln-eta-location"><span>%s</span></dd>', esc_html($locationText))
+                ? sprintf('<dd class="ln-eta-location"><span class="ln-eta-location-text">%s</span></dd>', esc_html($locationText))
                 : '';
 
             return $dt . $dateMarkup . $timeMarkup . $locationMarkup;
@@ -242,6 +249,19 @@ class BlockRender
         return trim(implode(', ', array_filter($parts, function ($part) {
             return $part !== '';
         })));
+    }
+
+    private function strip_time_from_datum(string $datum): string
+    {
+        $trimmed = trim($datum);
+        if ($trimmed === '') {
+            return '';
+        }
+
+        $pattern = '/\s+\d{1,2}(?:[:\.]\d{1,2})?(?:\s*-\s*\d{1,2}(?:[:\.]\d{1,2})?)?\s*Uhr/iu';
+        $clean = preg_replace($pattern, '', $trimmed);
+
+        return $clean !== null ? trim($clean) : $trimmed;
     }
 
     private function load_place_types(): void

@@ -89,6 +89,16 @@ const buildLocation = (
   return parts.join(", ");
 };
 
+const stripTimeFromDatum = (datum?: string) => {
+  if (!datum) {
+    return undefined;
+  }
+  const pattern =
+    /\s+\d{1,2}(?:[.:]\d{1,2})?(?:\s*-\s*\d{1,2}(?:[.:]\d{1,2})?)?\s*uhr/gi;
+  const clean = datum.replace(pattern, "").trim();
+  return clean || datum;
+};
+
 interface Attributes {
   id: string;
   limit: number;
@@ -356,34 +366,46 @@ export default function Edit({
         )}
         {error && <p style={{ color: "red" }}>{error}</p>}
         <dl>
-          {events.map((event) => (
-            <Fragment key={event.id}>
-              <dt>
-                {event.title && (
-                  <strong>
-                    {event.detailsUrl ? (
-                      <a
-                        href={event.detailsUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {event.title}
-                      </a>
-                    ) : (
-                      event.title
-                    )}
-                  </strong>
+          {events.map((event) => {
+            const displayDate = stripTimeFromDatum(event.datum);
+            const shouldShowTime = Boolean(event.startTime);
+            return (
+              <Fragment key={event.id}>
+                <dt>
+                  {event.title && (
+                    <strong>
+                      {event.detailsUrl ? (
+                        <a
+                          href={event.detailsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {event.title}
+                        </a>
+                      ) : (
+                        event.title
+                      )}
+                    </strong>
+                  )}
+                </dt>
+                {displayDate && (
+                  <dd className="ln-eta-date">
+                    <span className="ln-eta-date-text">{displayDate}</span>
+                  </dd>
                 )}
-              </dt>
-			  <dd>{event.datum && <br />}{event.datum && <span>{event.datum}</span>}</dd>
-              <dd>{event.startTime && <span>{event.startTime}</span>}</dd>
-              {event.location && (
-                <dd className="ln-eta-location">
-                  <span>{event.location}</span>
-                </dd>
-              )}
-            </Fragment>
-          ))}
+                {shouldShowTime && (
+                  <dd className="ln-eta-time">
+                    <span className="ln-eta-time-text">{event.startTime}</span>
+                  </dd>
+                )}
+                {event.location && (
+                  <dd className="ln-eta-location">
+                    <span className="ln-eta-location-text">{event.location}</span>
+                  </dd>
+                )}
+              </Fragment>
+            );
+          })}
         </dl>
       </div>
     </>
