@@ -33,6 +33,10 @@
     "placeType": {
       "type": "string",
       "default": ""
+    },
+    "searchText": {
+      "type": "string",
+      "default": ""
     }
   },
   "textdomain": "evangelische-termine-ausgeben",

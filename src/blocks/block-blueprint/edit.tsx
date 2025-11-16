@@ -17,6 +17,8 @@ interface Event {
   startRFC?: string;
   startTime?: string;
   placeCategory?: string;
+  shortDescription?: string;
+  longDescription?: string;
 }
 
 interface SelectOption {
@@ -40,6 +42,8 @@ interface ApiVeranstaltung {
     WOCHENTAG_START_LANG?: string;
     WOCHENTAG_START_KURZ?: string;
     _place_KAT?: string;
+    _event_SHORT_DESCRIPTION?: string;
+    _event_LONG_DESCRIPTION?: string;
 
   };
 }
@@ -50,6 +54,7 @@ interface Attributes {
   eventType?: string;
   people?: string;
   placeType?: string;
+  searchText?: string;
 }
 
 export default function Edit({
@@ -66,6 +71,7 @@ export default function Edit({
     eventType = "",
     people = "",
     placeType = "",
+    searchText = "",
   } = attributes;
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -195,13 +201,28 @@ export default function Edit({
             ? item.Veranstaltung.START_UHRZEIT.replace(".", ":")
             : undefined,
           placeCategory: item.Veranstaltung._place_KAT,
+          shortDescription: item.Veranstaltung._event_SHORT_DESCRIPTION,
+          longDescription: item.Veranstaltung._event_LONG_DESCRIPTION,
         }));
-        const filteredEvents =
-          placeType && selectedPlaceLabel
-            ? transformedEvents.filter(
-                (event) => event.placeCategory === selectedPlaceLabel
-              )
-            : transformedEvents;
+        let filteredEvents = transformedEvents;
+        if (placeType && selectedPlaceLabel) {
+          filteredEvents = filteredEvents.filter(
+            (event) => event.placeCategory === selectedPlaceLabel
+          );
+        }
+        const normalizedSearch = searchText.trim().toLowerCase();
+        if (normalizedSearch) {
+          filteredEvents = filteredEvents.filter((event) => {
+            const haystack = [
+              event.title,
+              event.shortDescription,
+              event.longDescription,
+            ]
+              .filter(Boolean)
+              .map((part) => part!.toLowerCase());
+            return haystack.some((part) => part.includes(normalizedSearch));
+          });
+        }
         setEvents(filteredEvents);
         setError(null);
         setLoading(false);
@@ -223,6 +244,7 @@ export default function Edit({
     people,
     placeType,
     selectedPlaceLabel,
+    searchText,
   ]);
 
   return (
@@ -265,6 +287,18 @@ export default function Edit({
             value={placeType}
             options={placeTypeOptions}
             onChange={(value: string) => setAttributes({ placeType: value })}
+          />
+          <TextControl
+            label={__(
+              "Nur Veranstaltungen mit folgendem Text",
+              "evangelische-termine-ausgeben"
+            )}
+            value={searchText}
+            onChange={(value) => setAttributes({ searchText: value })}
+            help={__(
+              "Filtert nach Titel oder Beschreibung.",
+              "evangelische-termine-ausgeben"
+            )}
           />
         </PanelBody>
       </InspectorControls>
