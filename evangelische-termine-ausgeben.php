@@ -53,8 +53,8 @@ add_action('plugins_loaded', __NAMESPACE__ . '\loaded');
  */
 function loadTextdomain()
 {
-    unload_textdomain('evangelische-termine-ausgeben');
-    load_plugin_textdomain('evangelische-termine-ausgeben', false, sprintf('%s/languages/', dirname(plugin_basename(__FILE__))));
+    //unload_textdomain('evangelische-termine-ausgeben');
+    //load_plugin_textdomain('evangelische-termine-ausgeben', false, sprintf('%s/languages/', dirname(plugin_basename(__FILE__))));
 }
 
 /**
@@ -96,7 +96,7 @@ function activation()
  */
 function loaded()
 {
-    loadTextdomain();
+    //loadTextdomain();
 
     if ($error = systemRequirements()) {
         if (!function_exists('get_plugin_data')) {
