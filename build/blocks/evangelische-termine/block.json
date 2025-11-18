@@ -41,6 +41,10 @@
     "heading": {
       "type": "string",
       "default": "Veranstaltungen"
+    },
+    "legacy": {
+      "type": "boolean",
+      "default": false
     }
   },
   "textdomain": "evangelische-termine-ausgeben",
