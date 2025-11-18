@@ -290,7 +290,7 @@ class BlockRender
         if (!is_array($data)) {
             return new WP_Error('ln_eta_invalid_response', __('Fehlerhafte Antwort vom Server.', 'evangelische-termine-ausgeben'));
         }
-        
+
         return $data;
     }
 
