@@ -24,6 +24,10 @@ class BlockRender
             'heading' => __('Veranstaltungen', 'evangelische-termine-ausgeben'),
         ];
 
+        if (!empty($attributes['legacy']) && $attributes['legacy'] === true) {
+            return $this->render_legacy_format($attributes);
+        }
+
         $attributes = wp_parse_args($attributes, $defaults);
         $queryArgs = $this->build_query_args($attributes);
 
@@ -106,6 +110,141 @@ class BlockRender
         return $this->render_wrapper($content);
     }
 
+    /**
+     * Outputs the legacy snippet in the “legacy” format.
+     *
+     * @param  array $attributes
+     * @return string
+     */
+    /**
+     * Renders the legacy view.
+     *
+     * @param  array $attributes
+     * @return string
+     */
+    public function render_legacy_format(array $attributes): string
+    {
+        $defaults = [
+            'id'         => '',
+            'limit'      => 10,
+            'eventType'  => '',
+            'people'     => '',
+            'placeType'  => '',
+            'searchText' => '',
+            'heading'    => __('Veranstaltungen', 'evangelische-termine-ausgeben'),
+        ];
+
+        $attributes = wp_parse_args($attributes, $defaults);
+        $queryArgs  = $this->build_query_args($attributes);
+
+        $events = $this->fetch_events($queryArgs);
+        if (is_wp_error($events)) {
+            return $this->render_wrapper(
+                sprintf(
+                    '<p class="ln-eta-error">%s</p>',
+                    esc_html($events->get_error_message())
+                )
+            );
+        }
+
+        if (!is_array($events)) {
+            return $this->render_wrapper('');
+        }
+
+        $events = $this->filter_by_place_type($events, $attributes['placeType']);
+        $events = $this->filter_by_search($events, $attributes['searchText']);
+
+        $heading = trim((string) ($attributes['heading'] ?? ''));
+        if (empty($events)) {
+            $content = sprintf(
+                '%1$s<p>%2$s</p>',
+                $heading !== '' ? '<h2>' . esc_html($heading) . '</h2>' : '',
+                esc_html__('Keine Veranstaltungen gefunden.', 'evangelische-termine-ausgeben')
+            );
+            return $this->render_wrapper($content);
+        }
+
+        $html  = '<div id="et_container">' . "\n";
+        $html .= '   <div id="et_content_container">' . "\n";
+
+        $i = 0;
+        foreach ($events as $event) {
+            $veranstaltung = $event['Veranstaltung'] ?? [];
+            $title = isset($veranstaltung['_event_TITLE']) ? esc_html($veranstaltung['_event_TITLE']) : '';
+            $datum = isset($veranstaltung['DATUM']) ? esc_html($veranstaltung['DATUM']) : '';
+
+            $startTime = !empty($veranstaltung['START_UHRZEIT'])
+                ? esc_html(str_replace('.', ':', $veranstaltung['START_UHRZEIT']))
+                : '';
+            $endTime = !empty($veranstaltung['END_UHRZEIT'])
+                ? esc_html(str_replace('.', ':', $veranstaltung['END_UHRZEIT']))
+                : '';
+
+            // Prefer _event_ID over ID for the detail link.
+            $eventID = !empty($veranstaltung['_event_ID']) ? $veranstaltung['_event_ID'] : ($veranstaltung['ID'] ?? '');
+            $detailUrl = $this->build_detail_url($eventID);
+
+            if (stripos($datum, 'Uhr') !== false) {
+                // If DATUM already contains a time indicator, use it as is.
+                $dateTimeStr = $datum;
+            } else {
+                // Otherwise, append the time text if available.
+                $timeText = $this->build_time_text($startTime, $endTime);
+                $dateTimeStr = $timeText !== '' ? $datum . ' ' . $timeText : $datum;
+            }
+
+            // Use the _inputmask_NAME as the legacy lit name.
+            $litName = isset($veranstaltung['_inputmask_NAME']) ? esc_html($veranstaltung['_inputmask_NAME']) : '';
+            // Person name from _person_NAME.
+            $personName = isset($veranstaltung['_person_NAME']) ? esc_html($veranstaltung['_person_NAME']) : '';
+
+            // Build location using _place_CITY and _place_NAME.
+            $cityName  = isset($veranstaltung['_place_CITY']) ? esc_html($veranstaltung['_place_CITY']) : '';
+            $placename = isset($veranstaltung['_place_NAME']) ? esc_html($veranstaltung['_place_NAME']) : '';
+            $location = ($cityName && $placename) ? $cityName . ': ' . $placename : ($cityName . $placename);
+
+            // Alternate row classes.
+            $rowClass = ($i % 2 === 0) ? 'et_even teaserrow' : 'et_odd';
+
+            $html .= '       <div class="et_content_row ' . $rowClass . '">' . "\n";
+            $html .= '           <div class="et_content_date teaserdate">' . $dateTimeStr;
+            if ($litName) {
+                $html .= '<br><span class="et_litname">' . $litName . '</span>';
+            }
+            $html .= '</div>' . "\n";
+
+            $html .= '           <div class="et_content_title">' . "\n";
+            $html .= '               <span class="teaserlink">' . "\n";
+            $html .= '                   <a href="javascript:;" onclick="ET_openWindow(\'' . esc_js($detailUrl) . '\',\'Detail\',\'toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=600,height=650,top=10,left=200\');" class="et_link_title">';
+            $html .= $title;
+            $html .= '</a>' . "\n";
+            $html .= '               </span>' . "\n";
+            $html .= '               <span class="teasertext">';
+            if ($personName) {
+                $html .= '<span class="et_personname">' . $personName . '</span>';
+            }
+            if ($cityName || $placename) {
+                $html .= '<br>';
+                if ($cityName) {
+                    $html .= '<span class="et_city">' . $cityName . ': </span>';
+                }
+                if ($placename) {
+                    $html .= '<span class="et_placename teaserplace">' . $placename . '</span>';
+                }
+            }
+            $html .= '</span>' . "\n";
+            $html .= '           </div>' . "\n";
+            $html .= '       </div>' . "\n";
+
+            $i++;
+        }
+
+        $html .= '   </div>' . "\n";
+        $html .= '</div>';
+
+        return $this->render_wrapper($html);
+    }
+
     private function build_query_args(array $attributes): array
     {
         $params = [
@@ -151,7 +290,7 @@ class BlockRender
         if (!is_array($data)) {
             return new WP_Error('ln_eta_invalid_response', __('Fehlerhafte Antwort vom Server.', 'evangelische-termine-ausgeben'));
         }
-
+        
         return $data;
     }
 

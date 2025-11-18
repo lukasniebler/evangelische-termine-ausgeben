@@ -1,10 +1,12 @@
 // Imports from WordPress libraries
-import { useBlockProps, InspectorControls } from "@wordpress/block-editor";
+import {useBlockProps, InspectorControls, BlockControls} from "@wordpress/block-editor";
 import {
   PanelBody,
   TextControl,
   RangeControl,
   SelectControl,
+  ToolbarGroup,
+  Button,
 } from "@wordpress/components";
 import { Fragment, useEffect, useMemo, useState } from "@wordpress/element";
 import apiFetch from "@wordpress/api-fetch";
@@ -119,6 +121,7 @@ interface Attributes {
   placeType?: string;
   searchText?: string;
   heading?: string;
+  legacy?: boolean;
 }
 
 export default function Edit({
@@ -145,6 +148,15 @@ export default function Edit({
     "Alle Veranstaltungstypen",
     "evangelische-termine-ausgeben"
   );
+
+  const Legacy = (
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="evenodd"><path d="m320-40-64-48 84-112H240q0-35 19.5-120.5T313-495q34-90 80.5-157.5T494-720q37 0 51.5 23t41.5 69q32 54 58 81t56 41q11-8 19-11t19-3q25 0 43 18t18 42v420h-40v-420q0-8-6-14t-14-6q-8 0-14 6t-6 14v50h-40v-19q-38-21-78-54.5T543-557l-23 117 80 239v161h-80v-160h-80L320-40Zm220-700q-33 0-56.5-23.5T460-820q0-8 4-24-11-5-17.5-14.5T440-880q0-17 11.5-28.5T480-920q12 0 21.5 6.5T516-896q6-2 12-3t12-1q33 0 56.5 23.5T620-820q0 33-23.5 56.5T540-740Z"/></svg>
+  );
+  const Modern = (
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="evenodd"><path d="M360-80v-529q-91-24-145.5-100.5T160-880h80q0 83 53.5 141.5T430-680h100q30 0 56 11t47 32l181 181-56 56-158-158v478h-80v-240h-80v240h-80Zm120-640q-33 0-56.5-23.5T400-800q0-33 23.5-56.5T480-880q33 0 56.5 23.5T560-800q0 33-23.5 56.5T480-720Z"/></svg>
+  );
+
+
   const peopleLabel = __(
     "Alle Zielgruppen",
     "evangelische-termine-ausgeben"
@@ -256,7 +268,6 @@ export default function Edit({
       path: `evangelische-termine-ausgeben/v1/data?endpoint=events&${queryParams}`,
     })
       .then((data: ApiVeranstaltung[]) => {
-        console.log(data);
         const transformedEvents: Event[] = data.map((item) => ({
           id: item.Veranstaltung.ID,
           title: item.Veranstaltung._event_TITLE,
@@ -317,6 +328,20 @@ export default function Edit({
 
   return (
     <>
+      <BlockControls>
+        <ToolbarGroup>
+          <Button
+              icon={attributes.legacy ? Legacy : Modern}
+              label={
+                attributes.legacy
+                    ? __('Legacy mode active', 'evangelische-termine-ausgeben')
+                    : __('Legacy mode inactive', 'evangelische-termine-ausgeben')
+              }
+              onClick={() => setAttributes({ legacy: !attributes.legacy })}
+          />
+        </ToolbarGroup>
+      </BlockControls>
+
       <InspectorControls>
         <PanelBody title={__("Einstellungen", "evangelische-termine-ausgeben")}>
           <TextControl
