@@ -198,8 +198,11 @@ class BlockRender
                 ? esc_html(str_replace('.', ':', $veranstaltung['END_UHRZEIT']))
                 : '';
 
-            // Prefer _event_ID over ID for the detail link.
-            $eventID = !empty($veranstaltung['_event_ID']) ? $veranstaltung['_event_ID'] : ($veranstaltung['ID'] ?? '');
+            // Prefer the main ID (matches the modern block) and only fall back to _event_ID.
+            $eventID = $veranstaltung['ID'] ?? '';
+            if ($eventID === '' && !empty($veranstaltung['_event_ID'])) {
+                $eventID = $veranstaltung['_event_ID'];
+            }
             $detailUrl = $this->build_detail_url($eventID);
 
             if (stripos($datum, 'Uhr') !== false) {
@@ -237,9 +240,17 @@ class BlockRender
 
             $html .= '           <div class="et_content_title">' . "\n";
             $html .= '               <span class="teaserlink">' . "\n";
-            $html .= '                   <a href="javascript:;" onclick="ET_openWindow(\'' . esc_js($detailUrl) . '\',\'Detail\',\'toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=600,height=650,top=10,left=200\');" class="et_link_title">';
-            $html .= $title;
-            $html .= '</a>' . "\n";
+            if ($title !== '') {
+                if ($detailUrl !== '') {
+                    $html .= sprintf(
+                        '                   <a href="%1$s" target="_blank" rel="noopener noreferrer" class="et_link_title">%2$s</a>' . "\n",
+                        esc_url($detailUrl),
+                        $title
+                    );
+                } else {
+                    $html .= '                   <span class="et_link_title">' . $title . '</span>' . "\n";
+                }
+            }
             $html .= '               </span>' . "\n";
             $html .= '               <span class="teasertext">';
             if ($personName) {
