@@ -6,11 +6,12 @@ import {
   RangeControl,
   SelectControl,
   ToolbarGroup,
-  Button,
+  ToolbarButton,
 } from "@wordpress/components";
 import { Fragment, useEffect, useMemo, useState } from "@wordpress/element";
 import apiFetch from "@wordpress/api-fetch";
 import { __ } from "@wordpress/i18n";
+import { calendar } from "@wordpress/icons";
 
 interface Event {
   id: string;
@@ -24,6 +25,8 @@ interface Event {
   longDescription?: string;
   location?: string;
   detailsUrl?: string;
+  weekdayLong?: string;
+  weekdayShort?: string;
 }
 
 interface SelectOption {
@@ -113,6 +116,89 @@ const buildTimeText = (start?: string, end?: string) => {
   return start || end || undefined;
 };
 
+const WEEKDAY_SHORT_MAP: Record<string, string> = {
+  montag: "Mo",
+  dienstag: "Di",
+  mittwoch: "Mi",
+  donnerstag: "Do",
+  freitag: "Fr",
+  samstag: "Sa",
+  sonntag: "So",
+};
+
+const determineShortWeekdayLabel = (
+  weekdayLong?: string,
+  weekdayShort?: string
+) => {
+  if (weekdayShort && weekdayShort.trim()) {
+    return weekdayShort.trim();
+  }
+  if (weekdayLong && weekdayLong.trim()) {
+    const key = weekdayLong.trim().toLocaleLowerCase("de-DE");
+    return WEEKDAY_SHORT_MAP[key];
+  }
+  return undefined;
+};
+
+const extractLeadingWeekday = (dateText: string) => {
+  const match = dateText.trimStart().match(/^([\p{L}äöüÄÖÜß]+)/u);
+  return match ? match[1] : undefined;
+};
+
+const shortenWeekdayInText = (dateText: string, event: Event) => {
+  const primaryShort = determineShortWeekdayLabel(
+    event.weekdayLong,
+    event.weekdayShort
+  );
+
+  const fallbackShort = !primaryShort
+    ? determineShortWeekdayLabel(extractLeadingWeekday(dateText))
+    : undefined;
+
+  const replacement = primaryShort || fallbackShort;
+  if (!replacement) {
+    return dateText;
+  }
+
+  const seen = new Set<string>();
+  const candidates = [
+    event.weekdayLong,
+    event.weekdayShort,
+    extractLeadingWeekday(dateText),
+  ].filter((value): value is string => Boolean(value && value.trim()));
+
+  for (const candidate of candidates) {
+    const normalized = candidate.trim();
+    const normalizedLower = normalized.toLocaleLowerCase("de-DE");
+    if (seen.has(normalizedLower)) {
+      continue;
+    }
+    seen.add(normalizedLower);
+    if (
+      normalizedLower === replacement.toLocaleLowerCase("de-DE") ||
+      !dateText.toLocaleLowerCase("de-DE").startsWith(normalizedLower)
+    ) {
+      continue;
+    }
+    return replacement + dateText.slice(normalized.length);
+  }
+
+  return dateText;
+};
+
+const formatDisplayDate = (event: Event, useShortWeekdays: boolean) => {
+  const cleaned = stripTimeFromDatum(event.datum);
+  if (!cleaned) {
+    return undefined;
+  }
+
+  if (!useShortWeekdays) {
+    return cleaned;
+  }
+
+  return shortenWeekdayInText(cleaned, event);
+};
+
 interface Attributes {
   id: string;
   limit: number;
@@ -122,6 +208,7 @@ interface Attributes {
   searchText?: string;
   heading?: string;
   legacy?: boolean;
+  shortWeekdays?: boolean;
 }
 
 export default function Edit({
@@ -140,6 +227,7 @@ export default function Edit({
     placeType = "",
     searchText = "",
     heading = "Veranstaltungen",
+    shortWeekdays = false,
   } = attributes;
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -280,8 +368,10 @@ export default function Edit({
           longDescription: item.Veranstaltung._event_LONG_DESCRIPTION,
           location: buildLocation(item.Veranstaltung),
           detailsUrl: item.Veranstaltung.ID
-            ? `https://www.evangelische-termine.de/d-${item.Veranstaltung.ID}`
+            ? `https://www.evangelische-termine.de/veranstaltung_im_detail${item.Veranstaltung.ID}.html?PHPSESSID=&popup=1&css=none`
             : undefined,
+          weekdayLong: item.Veranstaltung.WOCHENTAG_START_LANG,
+          weekdayShort: item.Veranstaltung.WOCHENTAG_START_KURZ,
         }));
         let filteredEvents = transformedEvents;
         if (placeType && selectedPlaceLabel) {
@@ -330,7 +420,7 @@ export default function Edit({
     <>
       <BlockControls>
         <ToolbarGroup>
-          <Button
+          <ToolbarButton
               icon={attributes.legacy ? Legacy : Modern}
               label={
                 attributes.legacy
@@ -338,6 +428,17 @@ export default function Edit({
                     : __('Legacy mode inactive', 'evangelische-termine-ausgeben')
               }
               onClick={() => setAttributes({ legacy: !attributes.legacy })}
+          />
+          <ToolbarButton
+            icon={calendar}
+            isPressed={shortWeekdays}
+            label={__(
+              "Kurzform der Wochentage umschalten",
+              "evangelische-termine-ausgeben"
+            )}
+            onClick={() =>
+              setAttributes({ shortWeekdays: !shortWeekdays })
+            }
           />
         </ToolbarGroup>
       </BlockControls>
@@ -450,7 +551,7 @@ export default function Edit({
         {error && <p style={{ color: "red" }}>{error}</p>}
         <dl>
           {events.map((event) => {
-            const displayDate = stripTimeFromDatum(event.datum);
+            const displayDate = formatDisplayDate(event, shortWeekdays);
             const timeText = buildTimeText(event.startTime, event.endTime);
             return (
               <Fragment key={event.id}>
