@@ -205,17 +205,38 @@ class BlockRender
             }
             $detailUrl = $this->build_detail_url($eventID);
 
+            $timeText = $this->build_time_text($startTime, $endTime);
+            $timeDisplay = '';
             if (stripos($datum, 'Uhr') !== false) {
-                // If DATUM already contains a time indicator, use it as is.
-                $dateTimeStr = $datum;
+                // DATUM already contains a formatted time span.
+                $timeDisplay = $this->extract_time_from_datum($datum);
             } else {
-                // Otherwise, append the time text if available.
-                $timeText = $this->build_time_text($startTime, $endTime);
-                $dateTimeStr = $timeText !== '' ? $datum . ' ' . $timeText : $datum;
+                $timeDisplay = $timeText;
+                if ($timeDisplay !== '' && stripos($timeDisplay, 'Uhr') === false) {
+                    $timeDisplay .= ' Uhr';
+                }
             }
 
-            // Use the _inputmask_NAME as the legacy lit name.
-            $litName = isset($veranstaltung['_inputmask_NAME']) ? esc_html($veranstaltung['_inputmask_NAME']) : '';
+            $dateDisplay = $this->strip_time_from_datum($datum);
+            if ($dateDisplay === '' && $datum !== '') {
+                $dateDisplay = $datum;
+            }
+            if ($dateDisplay !== '' && $useShortWeekdays) {
+                $dateDisplay = $this->apply_weekday_shortening($dateDisplay, $veranstaltung);
+            }
+
+            $dateParts = [];
+            if ($dateDisplay !== '') {
+                $dateParts[] = '<span class="et_tag">' . $dateDisplay . '</span>';
+            }
+            if (!empty($timeDisplay)) {
+                $dateParts[] = '<span class="et_uhrzeit">' . $timeDisplay . '</span>';
+            }
+
+            // Prefer the dedicated liturgy label over the older _inputmask field.
+            $litName = !empty($veranstaltung['LITURG_BEZ'])
+                ? esc_html((string) $veranstaltung['LITURG_BEZ'])
+                : '';
             // Person name from _person_NAME.
             $personName = isset($veranstaltung['_person_NAME']) ? esc_html($veranstaltung['_person_NAME']) : '';
 
@@ -228,11 +249,8 @@ class BlockRender
             $rowClass = ($i % 2 === 0) ? 'et_even teaserrow' : 'et_odd';
 
             $html .= '       <div class="et_content_row ' . $rowClass . '">' . "\n";
-            $dateTimeOutput = $useShortWeekdays && $dateTimeStr !== ''
-                ? $this->apply_weekday_shortening($dateTimeStr, $veranstaltung)
-                : $dateTimeStr;
 
-            $html .= '           <div class="et_content_date teaserdate">' . $dateTimeOutput;
+            $html .= '           <div class="et_content_date teaserdate">' . implode(' ', $dateParts);
             if ($litName) {
                 $html .= '<br><span class="et_litname">' . $litName . '</span>';
             }
@@ -275,7 +293,7 @@ class BlockRender
         $html .= '   </div>' . "\n";
         $html .= '</div>';
 
-        return $this->render_wrapper($html);
+        return $this->render_wrapper($html, ['class' => 'ln-eta-legacy']);
     }
 
     private function build_query_args(array $attributes): array
@@ -434,6 +452,24 @@ class BlockRender
         })));
     }
 
+    private function extract_time_from_datum(string $datum): string
+    {
+        $trimmed = trim($datum);
+        if ($trimmed === '') {
+            return '';
+        }
+
+        $pattern = '/(\d{1,2}(?:[:\.]\d{1,2})?(?:\s*-\s*\d{1,2}(?:[:\.]\d{1,2})?)?)\s*Uhr/iu';
+        if (preg_match($pattern, $trimmed, $matches)) {
+            $time = str_replace('.', ':', trim($matches[1]));
+            if ($time !== '') {
+                return $time . ' Uhr';
+            }
+        }
+
+        return '';
+    }
+
     private function apply_weekday_shortening(string $dateText, array $veranstaltung): string
     {
         $weekdayLong = isset($veranstaltung['WOCHENTAG_START_LANG'])
@@ -560,9 +596,9 @@ class BlockRender
         }
     }
 
-    private function render_wrapper(string $content): string
+    private function render_wrapper(string $content, array $additionalAttributes = []): string
     {
-        $wrapperAttributes = get_block_wrapper_attributes();
+        $wrapperAttributes = get_block_wrapper_attributes($additionalAttributes);
         return sprintf('<div %s>%s</div>', $wrapperAttributes, $content);
     }
 }
