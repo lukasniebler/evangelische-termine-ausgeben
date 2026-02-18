@@ -365,7 +365,10 @@ class BlockRender
             return '';
         }
 
-        return sprintf('https://www.evangelische-termine.de/d-%s', rawurlencode($eventId));
+        return sprintf(
+            'https://www.evangelische-termine.de/veranstaltung_im_detail%s.html?PHPSESSID=&popup=1&css=none',
+            rawurlencode($eventId)
+        );
     }
 
     private function build_location_text(array $veranstaltung): string
