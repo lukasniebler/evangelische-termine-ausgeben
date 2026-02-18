@@ -11,6 +11,15 @@ class BlockRender
 {
     private array $placeTypeMap = [];
     private bool $placeTypesLoaded = false;
+    private array $weekdayShortMap = [
+        'montag' => 'Mo',
+        'dienstag' => 'Di',
+        'mittwoch' => 'Mi',
+        'donnerstag' => 'Do',
+        'freitag' => 'Fr',
+        'samstag' => 'Sa',
+        'sonntag' => 'So',
+    ];
 
     public function render_block_blueprint(array $attributes = []): string
     {
@@ -22,6 +31,7 @@ class BlockRender
             'placeType' => '',
             'searchText' => '',
             'heading' => __('Veranstaltungen', 'evangelische-termine-ausgeben'),
+            'shortWeekdays' => false,
         ];
 
         if (!empty($attributes['legacy']) && $attributes['legacy'] === true) {
@@ -58,7 +68,9 @@ class BlockRender
             return $this->render_wrapper($content);
         }
 
-        $items = array_map(function ($event) {
+        $useShortWeekdays = !empty($attributes['shortWeekdays']);
+
+        $items = array_map(function ($event) use ($useShortWeekdays) {
             $veranstaltung = $event['Veranstaltung'] ?? [];
             $title = isset($veranstaltung['_event_TITLE']) ? esc_html($veranstaltung['_event_TITLE']) : '';
             $datum = isset($veranstaltung['DATUM']) ? esc_html($veranstaltung['DATUM']) : '';
@@ -83,6 +95,9 @@ class BlockRender
 
             $dt = sprintf('<dt>%s</dt>', $titleMarkup ? '<strong>' . $titleMarkup . '</strong>' : '');
             $cleanDate = $this->strip_time_from_datum($datum);
+            if ($cleanDate !== '' && $useShortWeekdays) {
+                $cleanDate = $this->apply_weekday_shortening($cleanDate, $veranstaltung);
+            }
             $dateMarkup = $cleanDate ? sprintf('<dd class="ln-eta-date"><span class="ln-eta-date-text">%s</span></dd>', $cleanDate) : '';
             $timeMarkup = '';
             $timeText = $this->build_time_text($startTime, $endTime);
@@ -132,6 +147,7 @@ class BlockRender
             'placeType'  => '',
             'searchText' => '',
             'heading'    => __('Veranstaltungen', 'evangelische-termine-ausgeben'),
+            'shortWeekdays' => false,
         ];
 
         $attributes = wp_parse_args($attributes, $defaults);
@@ -168,6 +184,8 @@ class BlockRender
         $html .= '   <div id="et_content_container">' . "\n";
 
         $i = 0;
+        $useShortWeekdays = !empty($attributes['shortWeekdays']);
+
         foreach ($events as $event) {
             $veranstaltung = $event['Veranstaltung'] ?? [];
             $title = isset($veranstaltung['_event_TITLE']) ? esc_html($veranstaltung['_event_TITLE']) : '';
@@ -207,7 +225,11 @@ class BlockRender
             $rowClass = ($i % 2 === 0) ? 'et_even teaserrow' : 'et_odd';
 
             $html .= '       <div class="et_content_row ' . $rowClass . '">' . "\n";
-            $html .= '           <div class="et_content_date teaserdate">' . $dateTimeStr;
+            $dateTimeOutput = $useShortWeekdays && $dateTimeStr !== ''
+                ? $this->apply_weekday_shortening($dateTimeStr, $veranstaltung)
+                : $dateTimeStr;
+
+            $html .= '           <div class="et_content_date teaserdate">' . $dateTimeOutput;
             if ($litName) {
                 $html .= '<br><span class="et_litname">' . $litName . '</span>';
             }
@@ -399,6 +421,78 @@ class BlockRender
         return trim(implode(', ', array_filter($parts, function ($part) {
             return $part !== '';
         })));
+    }
+
+    private function apply_weekday_shortening(string $dateText, array $veranstaltung): string
+    {
+        $weekdayLong = isset($veranstaltung['WOCHENTAG_START_LANG'])
+            ? (string) $veranstaltung['WOCHENTAG_START_LANG']
+            : '';
+        $weekdayShort = isset($veranstaltung['WOCHENTAG_START_KURZ'])
+            ? (string) $veranstaltung['WOCHENTAG_START_KURZ']
+            : '';
+
+        $replacement = $this->determine_weekday_short_label($weekdayLong, $weekdayShort);
+        if ($replacement === '') {
+            $firstWord = $this->extract_leading_weekday($dateText);
+            if ($firstWord !== '') {
+                $replacement = $this->determine_weekday_short_label($firstWord, '');
+            }
+        }
+
+        if ($replacement === '') {
+            return $dateText;
+        }
+
+        $candidates = array_values(array_unique(array_filter([
+            $weekdayLong,
+            $weekdayShort,
+            $this->extract_leading_weekday($dateText),
+        ], function ($value) {
+            return is_string($value) && trim($value) !== '';
+        })));
+
+        foreach ($candidates as $candidate) {
+            if ($this->is_same_word($candidate, $replacement)) {
+                continue;
+            }
+
+            if (stripos($dateText, $candidate) === 0) {
+                $suffix = mb_substr($dateText, mb_strlen($candidate));
+                return $replacement . $suffix;
+            }
+        }
+
+        return $dateText;
+    }
+
+    private function determine_weekday_short_label(string $weekdayLong, string $weekdayShort): string
+    {
+        $weekdayShort = trim($weekdayShort);
+        if ($weekdayShort !== '') {
+            return $weekdayShort;
+        }
+
+        $key = mb_strtolower(trim($weekdayLong));
+        return $this->weekdayShortMap[$key] ?? '';
+    }
+
+    private function extract_leading_weekday(string $text): string
+    {
+        if ($text === '') {
+            return '';
+        }
+
+        if (preg_match('/^\s*([\p{L}äöüÄÖÜß]+)/u', $text, $matches)) {
+            return $matches[1];
+        }
+
+        return '';
+    }
+
+    private function is_same_word(string $a, string $b): bool
+    {
+        return mb_strtolower(trim($a)) === mb_strtolower(trim($b));
     }
 
     private function strip_time_from_datum(string $datum): string

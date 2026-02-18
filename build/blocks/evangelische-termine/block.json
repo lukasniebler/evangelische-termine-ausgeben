@@ -45,6 +45,10 @@
     "legacy": {
       "type": "boolean",
       "default": false
+    },
+    "shortWeekdays": {
+      "type": "boolean",
+      "default": false
     }
   },
   "textdomain": "evangelische-termine-ausgeben",
