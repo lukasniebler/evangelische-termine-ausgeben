@@ -39,7 +39,8 @@ class BlockRender
         }
 
         $attributes = wp_parse_args($attributes, $defaults);
-        $queryArgs = $this->build_query_args($attributes);
+        $deferLimit = $this->should_defer_limit($attributes);
+        $queryArgs = $this->build_query_args($attributes, !$deferLimit);
 
         $events = $this->fetch_events($queryArgs);
         if (is_wp_error($events)) {
@@ -57,6 +58,7 @@ class BlockRender
 
         $events = $this->filter_by_place_type($events, $attributes['placeType']);
         $events = $this->filter_by_search($events, $attributes['searchText']);
+        $events = $this->apply_limit($events, $attributes, $deferLimit);
 
         $heading = trim((string) ($attributes['heading'] ?? ''));
         if (empty($events)) {
@@ -151,7 +153,8 @@ class BlockRender
         ];
 
         $attributes = wp_parse_args($attributes, $defaults);
-        $queryArgs  = $this->build_query_args($attributes);
+        $deferLimit = $this->should_defer_limit($attributes);
+        $queryArgs  = $this->build_query_args($attributes, !$deferLimit);
 
         $events = $this->fetch_events($queryArgs);
         if (is_wp_error($events)) {
@@ -169,6 +172,7 @@ class BlockRender
 
         $events = $this->filter_by_place_type($events, $attributes['placeType']);
         $events = $this->filter_by_search($events, $attributes['searchText']);
+        $events = $this->apply_limit($events, $attributes, $deferLimit);
 
         $heading = trim((string) ($attributes['heading'] ?? ''));
         if (empty($events)) {
@@ -296,7 +300,7 @@ class BlockRender
         return $this->render_wrapper($html, ['class' => 'ln-eta-legacy']);
     }
 
-    private function build_query_args(array $attributes): array
+    private function build_query_args(array $attributes, bool $includeLimit = true): array
     {
         $params = [
             'endpoint' => 'events',
@@ -307,7 +311,7 @@ class BlockRender
         }
 
         $limit = isset($attributes['limit']) ? (int) $attributes['limit'] : 0;
-        if ($limit > 0) {
+        if ($includeLimit && $limit > 0) {
             $params['itemsPerPage'] = $limit;
         }
 
@@ -318,6 +322,26 @@ class BlockRender
         }
 
         return $params;
+    }
+
+    private function should_defer_limit(array $attributes): bool
+    {
+        return !empty(trim((string) ($attributes['searchText'] ?? '')))
+            || !empty(trim((string) ($attributes['placeType'] ?? '')));
+    }
+
+    private function apply_limit(array $events, array $attributes, bool $deferLimit): array
+    {
+        if (!$deferLimit) {
+            return $events;
+        }
+
+        $limit = isset($attributes['limit']) ? (int) $attributes['limit'] : 0;
+        if ($limit <= 0) {
+            return $events;
+        }
+
+        return array_slice($events, 0, $limit);
     }
 
     private function fetch_events(array $queryArgs)

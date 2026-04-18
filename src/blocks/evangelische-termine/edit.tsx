@@ -336,8 +336,11 @@ export default function Edit({
     setLoading(true);
 
     const params = new URLSearchParams();
+    const hasLocalFilters = Boolean(
+      searchText.trim() || (placeType && selectedPlaceLabel)
+    );
     params.append("vid", id);
-    if (limit) {
+    if (limit && !hasLocalFilters) {
       params.append("itemsPerPage", String(limit));
     }
     if (eventType) {
@@ -391,6 +394,9 @@ export default function Edit({
               .map((part) => part!.toLowerCase());
             return haystack.some((part) => part.includes(normalizedSearch));
           });
+        }
+        if (limit && hasLocalFilters) {
+          filteredEvents = filteredEvents.slice(0, limit);
         }
         setEvents(filteredEvents);
         setError(null);
