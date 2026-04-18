@@ -2,9 +2,9 @@
 Contributors: Lukas Niebler
 Tags: Evangelische Termine, Kalender, Ausgabe, Evangelisch, Kirche, Evangelische Kirche
 Requires at least: 6.7
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
