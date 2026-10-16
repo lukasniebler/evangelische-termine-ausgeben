@@ -38,6 +38,10 @@
       "type": "string",
       "default": ""
     },
+    "searchTitleOnly": {
+      "type": "boolean",
+      "default": false
+    },
     "heading": {
       "type": "string",
       "default": "Veranstaltungen"

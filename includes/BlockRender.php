@@ -30,6 +30,7 @@ class BlockRender
             'people' => '',
             'placeType' => '',
             'searchText' => '',
+            'searchTitleOnly' => false,
             'heading' => __('Veranstaltungen', 'evangelische-termine-ausgeben'),
             'shortWeekdays' => false,
         ];
@@ -57,7 +58,7 @@ class BlockRender
         }
 
         $events = $this->filter_by_place_type($events, $attributes['placeType']);
-        $events = $this->filter_by_search($events, $attributes['searchText']);
+        $events = $this->filter_by_search($events, $attributes['searchText'], !empty($attributes['searchTitleOnly']));
         $events = $this->apply_limit($events, $attributes, $deferLimit);
 
         $heading = trim((string) ($attributes['heading'] ?? ''));
@@ -148,6 +149,7 @@ class BlockRender
             'people'     => '',
             'placeType'  => '',
             'searchText' => '',
+            'searchTitleOnly' => false,
             'heading'    => __('Veranstaltungen', 'evangelische-termine-ausgeben'),
             'shortWeekdays' => false,
         ];
@@ -171,7 +173,7 @@ class BlockRender
         }
 
         $events = $this->filter_by_place_type($events, $attributes['placeType']);
-        $events = $this->filter_by_search($events, $attributes['searchText']);
+        $events = $this->filter_by_search($events, $attributes['searchText'], !empty($attributes['searchTitleOnly']));
         $events = $this->apply_limit($events, $attributes, $deferLimit);
 
         $heading = trim((string) ($attributes['heading'] ?? ''));
@@ -386,7 +388,7 @@ class BlockRender
         }));
     }
 
-    private function filter_by_search(array $events, string $searchText): array
+    private function filter_by_search(array $events, string $searchText, bool $titleOnly = false): array
     {
         $searchText = trim(
             wp_strip_all_tags(
@@ -400,11 +402,12 @@ class BlockRender
 
         $needle = mb_strtolower($searchText);
 
-        return array_values(array_filter($events, function ($event) use ($needle) {
+        return array_values(array_filter($events, function ($event) use ($needle, $titleOnly) {
             $veranstaltung = $event['Veranstaltung'] ?? [];
             $haystack = [];
 
-            foreach (['_event_TITLE', '_event_SHORT_DESCRIPTION', '_event_LONG_DESCRIPTION'] as $key) {
+            $fields = $titleOnly ? ['_event_TITLE'] : ['_event_TITLE', '_event_SHORT_DESCRIPTION', '_event_LONG_DESCRIPTION'];
+            foreach ($fields as $key) {
                 if (!empty($veranstaltung[$key])) {
                     $haystack[] = mb_strtolower((string) $veranstaltung[$key]);
                 }

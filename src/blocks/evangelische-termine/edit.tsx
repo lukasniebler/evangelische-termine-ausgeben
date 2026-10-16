@@ -5,6 +5,7 @@ import {
   TextControl,
   RangeControl,
   SelectControl,
+  ToggleControl,
   ToolbarGroup,
   ToolbarButton,
 } from "@wordpress/components";
@@ -206,6 +207,7 @@ interface Attributes {
   people?: string;
   placeType?: string;
   searchText?: string;
+  searchTitleOnly?: boolean;
   heading?: string;
   legacy?: boolean;
   shortWeekdays?: boolean;
@@ -226,6 +228,7 @@ export default function Edit({
     people = "",
     placeType = "",
     searchText = "",
+    searchTitleOnly = false,
     heading = "Veranstaltungen",
     shortWeekdays = false,
   } = attributes;
@@ -385,11 +388,11 @@ export default function Edit({
         const normalizedSearch = searchText.trim().toLowerCase();
         if (normalizedSearch) {
           filteredEvents = filteredEvents.filter((event) => {
-            const haystack = [
+            const haystack = (searchTitleOnly ? [event.title] : [
               event.title,
               event.shortDescription,
               event.longDescription,
-            ]
+            ])
               .filter(Boolean)
               .map((part) => part!.toLowerCase());
             return haystack.some((part) => part.includes(normalizedSearch));
@@ -420,6 +423,7 @@ export default function Edit({
     placeType,
     selectedPlaceLabel,
     searchText,
+    searchTitleOnly,
   ]);
 
   return (
@@ -541,9 +545,15 @@ export default function Edit({
             value={searchText}
             onChange={(value) => setAttributes({ searchText: value })}
             help={__(
-              "Filtert nach Titel oder Beschreibung.",
+              "Filtert nach dem eingegebenen Text. Optional nur im Veranstaltungstitel suchen.",
               "evangelische-termine-ausgeben"
             )}
+          />
+          <ToggleControl
+            label={__("Nur im Titel suchen", "evangelische-termine-ausgeben")}
+            checked={searchTitleOnly}
+            onChange={(value) => setAttributes({ searchTitleOnly: value })}
+            help={__("Verhindert Treffer, die Ihr Angebot nur im Beschreibungstext erwähnen.", "evangelische-termine-ausgeben")}
           />
         </PanelBody>
       </InspectorControls>
@@ -555,6 +565,9 @@ export default function Edit({
           </p>
         )}
         {error && <p style={{ color: "red" }}>{error}</p>}
+        {!loading && !error && events.length === 0 && (
+          <p>{__("Keine Veranstaltungen gefunden.", "evangelische-termine-ausgeben")}</p>
+        )}
         <dl>
           {events.map((event) => {
             const displayDate = formatDisplayDate(event, shortWeekdays);
