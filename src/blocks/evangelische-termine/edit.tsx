@@ -331,12 +331,20 @@ export default function Edit({
   }, [eventTypeLabel, peopleLabel, placeTypeLabel]);
 
   useEffect(() => {
-    if (!id) return;
+    let isCurrent = true;
+    if (!id.trim()) {
+      setEvents([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     if (placeType && !selectedPlaceLabel) {
       return;
     }
 
     setLoading(true);
+    setEvents([]);
+    setError(null);
 
     const params = new URLSearchParams();
     const hasLocalFilters = Boolean(
@@ -362,6 +370,7 @@ export default function Edit({
       path: `evangelische-termine-ausgeben/v1/data?endpoint=events&${queryParams}`,
     })
       .then((data: ApiVeranstaltung[]) => {
+        if (!isCurrent) return;
         const transformedEvents: Event[] = data.map((item) => ({
           id: item.Veranstaltung.ID,
           title: item.Veranstaltung._event_TITLE,
@@ -406,15 +415,20 @@ export default function Edit({
         setLoading(false);
       })
       .catch((err) => {
+        if (!isCurrent) return;
         console.error("Error fetching events:", err);
         setError(
-          __(
+          err?.code === "ln_eta_invalid_organizer_ids" && typeof err.message === "string"
+            ? err.message
+            : __(
             "Fehler beim Abrufen der Veranstaltungen.",
             "evangelische-termine-ausgeben"
           )
         );
         setLoading(false);
       });
+    // Typing a second ID must not let an older request replace the current preview.
+    return () => { isCurrent = false; };
   }, [
     id,
     limit,
@@ -465,11 +479,11 @@ export default function Edit({
             )}
           />
           <TextControl
-            label={__("Veranstalter ID", "evangelische-termine-ausgeben")}
+            label={__("Veranstalter-ID(s)", "evangelische-termine-ausgeben")}
             value={id}
             onChange={(value) => setAttributes({ id: value })}
             help={__(
-              "Geben Sie die Veranstalter-ID ein.",
+              "Eine ID oder mehrere IDs mit Komma eingeben, z. B. 1081,562. Die Termine erscheinen gemeinsam; die Anzahl gilt insgesamt. Auch im Legacy-/Senior-Modus nutzbar.",
               "evangelische-termine-ausgeben"
             )}
           />

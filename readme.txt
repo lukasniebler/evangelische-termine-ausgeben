@@ -24,6 +24,14 @@ Evangelische Termine erlaubt die Ausgabe von Veranstaltungen aus dem Veranstaltu
 
 Nach der Aktivierung des Plugins stehen die Blöcke im Gutenberg Editor unter der Kategorie Evangelische Termine Ausgabe zur Verfügung.
 
+= Kann ich Termine von zwei Veranstaltern gemeinsam anzeigen? =
+
+Ja. Im Block unter Einstellungen → Veranstalter-ID(s) die IDs mit einem Komma trennen, zum Beispiel 1081,562. Die Anzahl der Veranstaltungen gilt für die gemeinsame Liste. Leerzeichen und doppelte IDs werden bereinigt. Die bisherige Eingabe einer einzelnen ID bleibt möglich.
+
+= Funktioniert das auch im Legacy-/Senior-Modus? =
+
+Ja. Die bestehende HTML-Struktur und Gestaltung bleiben erhalten. Erst die zusätzliche ID im jeweiligen Block erweitert dessen Auswahl; es gibt keine automatische Umstellung bestehender Blöcke.
+
 == Screenshots ==
 
 

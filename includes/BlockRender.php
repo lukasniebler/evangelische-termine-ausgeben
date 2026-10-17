@@ -358,8 +358,9 @@ class BlockRender
             return $response;
         }
 
-        if ($response instanceof WP_Error) {
-            return $response;
+        // rest_do_request wraps WP_Error in an error response, rather than returning it directly.
+        if ($response->is_error()) {
+            return $response->as_error();
         }
 
         $data = $response->get_data();
