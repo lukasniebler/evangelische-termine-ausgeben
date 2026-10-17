@@ -4,7 +4,7 @@ Tags: Evangelische Termine, Kalender, Ausgabe, Evangelisch, Kirche, Evangelische
 Requires at least: 6.7
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.0.5
+Stable tag: 1.1.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -38,13 +38,19 @@ Ja. Die bestehende HTML-Struktur und Gestaltung bleiben erhalten. Erst die zusä
 
 == Changelog ==
 
+= 1.1.0 =
+* Mehrere komma-separierte Veranstalter-IDs im Block: gemeinsame Terminliste mit Gesamtbegrenzung, Bereinigung von Leerzeichen und doppelten IDs.
+* Einzel-ID-Konfiguration sowie HTML-Struktur und Styles des Legacy-/Senior-Modus bleiben erhalten.
+* Verständliche Fehlerhinweise bei ungültigen ID-Listen; veraltete Anfragen überschreiben die Editor-Vorschau nicht mehr.
+* Optionale Suche nur im Veranstaltungstitel und Unterstützung dynamischer Blöcke in Seitenvorlagen.
+
 = 1.0.0 =
 * Erste Veröffentlichung.
 
 == Upgrade Notice ==
 
-= 1.0.8 =
-Bitte aktualisieren Sie, um die neuesten Funktionen und Fehlerbehebungen zu erhalten.
+= 1.1.0 =
+Mehrere Veranstalter lassen sich optional durch zusätzliche IDs im jeweiligen Block auswählen. Bestehende Einzel-ID-Blöcke und die Legacy-/Senior-Ausgabe bleiben erhalten; eine Migration ist nicht nötig.
 
 == License ==
 

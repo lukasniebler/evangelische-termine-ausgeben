@@ -4,7 +4,7 @@
 Plugin Name:     Evangelische Termine Ausgeben
 Plugin URI:      https://github.com/lukasniebler/evangelische-termine-ausgeben
 Description:     Allows to display events from the Evangelische Kirche
-Version:         1.0.5
+Version:         1.1.0
 Author:          Lukas Niebler
 Author URI:      https://lukas-niebler.de
 License:         GNU General Public License v3
@@ -22,7 +22,7 @@ use LN\EvangelischeTermineAusgeben\Main;
 // Define plugin version requirements.
 const LN_ETA_PHP_VERSION = '8.0';
 const LN_ETA_WP_VERSION = '6.0';
-const LN_ETA_PLUGIN_VERSION = '1.0.0';
+const LN_ETA_PLUGIN_VERSION = '1.1.0';
 
 // Autoloads plugin classes.
 spl_autoload_register(function ($class) {
