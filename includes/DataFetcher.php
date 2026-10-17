@@ -158,7 +158,15 @@ class DataFetcher
 
         $status_code = wp_remote_retrieve_response_code($response);
         if ($status_code !== 200) {
-            return new WP_Error('api_response_error', sprintf(__('Fehlerhafte API-Antwort: %s', 'evangelische-termine-ausgeben'), $status_code), ['status' => $status_code]);
+            return new WP_Error(
+                'api_response_error',
+                sprintf(
+                    /* translators: %s: HTTP status code returned by the events API. */
+                    __('Fehlerhafte API-Antwort: %s', 'evangelische-termine-ausgeben'),
+                    $status_code
+                ),
+                ['status' => $status_code]
+            );
         }
 
         $body = wp_remote_retrieve_body($response);
@@ -173,7 +181,6 @@ class DataFetcher
             if ($xml !== false) {
                 $data = json_decode(json_encode($xml), true);
             } else {
-                error_log('JSON/XML decode error: ' . json_last_error_msg());
                 return new WP_Error('decode_error', __('Fehler beim Dekodieren der Daten.', 'evangelische-termine-ausgeben'), ['status' => 500]);
             }
         }

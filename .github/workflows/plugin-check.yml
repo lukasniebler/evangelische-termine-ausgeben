@@ -17,8 +17,9 @@ jobs:
 
       - name: Prepare Plugin Files
         run: |
-          mkdir plugin-package
+          mkdir -p plugin-package/evangelische-termine-ausgeben
           rsync -av --exclude='.*' \
+                    --exclude='plugin-package' \
                     --exclude='node_modules' \
                     --exclude='tests' \
                     --exclude='docs' \
@@ -31,9 +32,9 @@ jobs:
                     --exclude='phpunit.xml' \
                     --exclude='phpcs.xml' \
                     --exclude='.git*' \
-                    . plugin-package/
+                    . plugin-package/evangelische-termine-ausgeben/
 
       - name: WordPress Plugin Check
         uses: WordPress/plugin-check-action@v1
-        env:
-          PLUGIN_DIR: ${{ github.workspace }}/plugin-package
+        with:
+          build-dir: './plugin-package/evangelische-termine-ausgeben'
