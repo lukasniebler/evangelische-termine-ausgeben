@@ -1,6 +1,11 @@
 <?php
 /** WordPress integration with intercepted HTTP and an in-memory plugin cache. No DB writes. */
 namespace LN\EvangelischeTermineAusgeben {
+    if (PHP_SAPI !== 'cli') {
+        http_response_code(403);
+        exit;
+    }
+
     function get_transient($key) { return $GLOBALS['eta_test_cache'][$key] ?? false; }
     function set_transient($key, $value, $expiration) {
         $GLOBALS['eta_test_cache'][$key] = $value;

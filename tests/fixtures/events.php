@@ -1,5 +1,10 @@
 <?php
 /** Controlled feed for output-compatibility and organizer tests. */
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit;
+}
+
 return [
     ['Veranstaltung' => [
         'ID' => '1001', '_event_ID' => 'old-1001', '_event_TITLE' => 'Gottesdienst & Musik <Gemeinde>',

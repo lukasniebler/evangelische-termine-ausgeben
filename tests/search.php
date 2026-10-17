@@ -1,5 +1,10 @@
 <?php
 /** Integration test with a mocked REST feed; no external requests or database writes. */
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit;
+}
+
 require $argv[1] ?? dirname(__DIR__, 4).'/wp-load.php';
 
 $fixture = [
