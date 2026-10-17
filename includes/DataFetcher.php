@@ -54,7 +54,7 @@ class DataFetcher
             'vid' => [
                 'required'          => false,
                 'sanitize_callback' => 'sanitize_text_field',
-                'description'       => 'Veranstaltungs-ID',
+                'description'       => 'Veranstalter-ID oder mehrere durch Kommas getrennte Veranstalter-IDs.',
             ],
         ];
     }
@@ -78,6 +78,16 @@ class DataFetcher
         $endpoint_key = $params['endpoint'];
         unset($params['endpoint']);
 
+        // The provider combines organizers in one feed, including ordering and pagination.
+        // Keep existing single-ID requests and all other endpoints unchanged.
+        if ($endpoint_key === 'events' && isset($params['vid']) && is_string($params['vid'])) {
+            $organizers = $this->normalize_organizer_ids($params['vid']);
+            if (is_wp_error($organizers)) {
+                return $organizers;
+            }
+            $params['vid'] = $organizers;
+        }
+
         // Daten holen
         $data = $this->fetch_data($endpoint_key, $params);
 
@@ -86,6 +96,42 @@ class DataFetcher
         }
 
         return new WP_REST_Response($data, 200);
+    }
+
+    private function normalize_organizer_ids(string $value)
+    {
+        if (strpos($value, ',') === false) {
+            return $value;
+        }
+
+        $ids = [];
+        foreach (explode(',', $value) as $part) {
+            $id = trim($part);
+            // Tolerate a trailing comma and accidental empty entries while editing.
+            if ($id === '') {
+                continue;
+            }
+            if (!preg_match('/^[0-9]+$/D', $id) || ltrim($id, '0') === '') {
+                return $this->invalid_organizer_ids();
+            }
+            $ids[] = ltrim($id, '0');
+        }
+
+        if (!$ids) {
+            return $this->invalid_organizer_ids();
+        }
+
+        // Normalize before looking up the cache; whitespace and duplicates share one entry.
+        return implode(',', array_unique($ids));
+    }
+
+    private function invalid_organizer_ids(): WP_Error
+    {
+        return new WP_Error(
+            'ln_eta_invalid_organizer_ids',
+            __('Bitte geben Sie Veranstalter-IDs als positive Zahlen ein, durch Kommas getrennt (z. B. 1081,562).', 'evangelische-termine-ausgeben'),
+            ['status' => 400]
+        );
     }
 
     /**
@@ -112,7 +158,15 @@ class DataFetcher
 
         $status_code = wp_remote_retrieve_response_code($response);
         if ($status_code !== 200) {
-            return new WP_Error('api_response_error', sprintf(__('Fehlerhafte API-Antwort: %s', 'evangelische-termine-ausgeben'), $status_code), ['status' => $status_code]);
+            return new WP_Error(
+                'api_response_error',
+                sprintf(
+                    /* translators: %s: HTTP status code returned by the events API. */
+                    __('Fehlerhafte API-Antwort: %s', 'evangelische-termine-ausgeben'),
+                    $status_code
+                ),
+                ['status' => $status_code]
+            );
         }
 
         $body = wp_remote_retrieve_body($response);
@@ -127,7 +181,6 @@ class DataFetcher
             if ($xml !== false) {
                 $data = json_decode(json_encode($xml), true);
             } else {
-                error_log('JSON/XML decode error: ' . json_last_error_msg());
                 return new WP_Error('decode_error', __('Fehler beim Dekodieren der Daten.', 'evangelische-termine-ausgeben'), ['status' => 500]);
             }
         }

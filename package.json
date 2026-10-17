@@ -1,6 +1,6 @@
 {
 	"name": "evangelische-termine-ausgeben",
-	"version": "1.0.3",
+	"version": "1.1.0",
 	"description": "RRZE Elements: Gestalterische Erweiterungen für den BlockEditor",
 	"main": "build/index.js",
 	"textdomain": "evangelische-termine-ausgeben",
