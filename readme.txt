@@ -16,6 +16,8 @@ Display church events from the Evangelische Termine calendar in the WordPress bl
 
 The block supports event limits and filtering, including an optional search in event titles only. Existing blocks with a single organizer ID continue to work. The Legacy/Senior mode preserves its existing HTML structure and styling.
 
+Custom themes can explicitly request an additional cached XML feed through the EventDetails PHP helper. It preserves the provider's field labels and form field selection for custom event detail pages. Existing blocks do not use this optional helper and remain unchanged.
+
 == Installation ==
 
 1. Upload the plugin folder to the `/wp-content/plugins/` directory, or install the plugin ZIP through Plugins > Add New Plugin > Upload Plugin.
