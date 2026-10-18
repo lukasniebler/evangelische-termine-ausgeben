@@ -4,7 +4,7 @@ Tags: events, calendar, church, block, evangelische termine
 Requires at least: 6.7
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -17,6 +17,8 @@ Display church events from the Evangelische Termine calendar in the WordPress bl
 The block supports event limits and filtering, including an optional search in event titles only. Existing blocks with a single organizer ID continue to work. The Legacy/Senior mode preserves its existing HTML structure and styling.
 
 Custom themes can explicitly request an additional cached XML feed through the EventDetails PHP helper. It preserves the provider's field labels and form field selection for custom event detail pages. Existing blocks do not use this optional helper and remain unchanged.
+
+An optional WP Rocket integration can be enabled under Settings > Evangelische Termine. Publicly rendered event blocks register their page automatically. Scheduled checks refresh shared event feeds and purge only pages whose displayed lists changed. The integration is off by default and does not change Legacy/Senior output.
 
 == Installation ==
 
@@ -40,6 +42,10 @@ Yes. The existing HTML structure and styling are preserved. Events from another 
 
 == Changelog ==
 
+= 1.3.0 =
+* Add opt-in WP Rocket integration with automatic page registration during block rendering, output-based comparison, bounded background refresh and error backoff.
+* Provide a theme hook for custom event lists without changing existing block markup.
+
 = 1.2.0 =
 * Add an optional cached XML feed helper for custom event detail pages, preserving public field labels and form field selection.
 * Limit additional feed requests and response sizes, prevent parallel refreshes and briefly back off after failures.
@@ -56,6 +62,9 @@ Yes. The existing HTML structure and styling are preserved. Events from another 
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+The WP Rocket integration is optional and disabled by default. Enable it under Settings > Evangelische Termine, then clear and publicly load existing event pages once to register them. Existing blocks and Legacy/Senior output remain unchanged.
 
 = 1.2.0 =
 Custom themes can use the optional event detail helper. Existing blocks and Legacy/Senior output remain unchanged. No settings changes or data migration are required.

@@ -27,9 +27,56 @@ class DataFetcher
         'events'         => 'https://www.evangelische-termine.de/json',
     ];
 
-    public function __construct()
+    public function __construct(bool $register_routes = true)
     {
-        add_action('rest_api_init', [$this, 'register_rest_routes']);
+        if ($register_routes) {
+            add_action('rest_api_init', [$this, 'register_rest_routes']);
+        }
+    }
+
+    /** Internal refresh only: public REST callers cannot bypass the cache. */
+    public static function refresh_events(array $params)
+    {
+        $params = self::event_params($params);
+        return is_wp_error($params) ? $params : (new self(false))->fetch_data('events', $params, true);
+    }
+
+    public static function event_params(array $params)
+    {
+        unset($params['endpoint']);
+        foreach ($params as $key => $value) {
+            if (!in_array($key, ['vid', 'itemsPerPage', 'eventtype', 'people', 'placetype'], true)
+                || !is_scalar($value) || strlen((string) $value) > 200) {
+                return new WP_Error('ln_eta_cache_query', __('Ungültige Terminabfrage.', 'evangelische-termine-ausgeben'));
+            }
+            $params[$key] = (string) $value;
+        }
+        if (isset($params['vid'])) {
+            $params['vid'] = (new self(false))->normalize_organizer_ids($params['vid']);
+            if (is_wp_error($params['vid'])) { return $params['vid']; }
+        }
+        ksort($params);
+        return $params;
+    }
+
+    public static function event_cache_key(array $params): string
+    {
+        ksort($params);
+        return self::TRANSIENT_PREFIX . md5('events' . http_build_query($params));
+    }
+
+    public static function valid_event_rows($data): bool
+    {
+        if (!is_array($data) || ($data && array_keys($data) !== range(0, count($data) - 1))) { return false; }
+        foreach ($data as $row) {
+            if (!is_array($row) || !is_array($row['Veranstaltung'] ?? null)
+                || (empty($row['Veranstaltung']['ID']) && empty($row['Veranstaltung']['_event_ID']))) { return false; }
+            foreach ($row['Veranstaltung'] as $field => $value) {
+                if ($value !== null && !is_scalar($value)
+                    && !in_array($field, ['_inputmask_FIELDS', '_field_labels', '_visible_fields'], true)) { return false; }
+            }
+        }
+        return true;
     }
 
     public function register_rest_routes()
@@ -137,20 +184,22 @@ class DataFetcher
     /**
      * Daten holen und ggf. cachen
      */
-    private function fetch_data($endpoint_key, $params)
+    private function fetch_data($endpoint_key, $params, bool $refresh = false)
     {
         // Eindeutigen Transient-Key erzeugen
         ksort($params);
         $transient_key = self::TRANSIENT_PREFIX . md5($endpoint_key . http_build_query($params));
         $cached_data = get_transient($transient_key);
 
-        if ($cached_data !== false) {
+        if (!$refresh && $cached_data !== false) {
             return $cached_data;
         }
 
         $url = $this->build_url($this->base_endpoints[$endpoint_key], $params);
 
-        $response = wp_remote_get($url, ['timeout' => 15]);
+        $response = wp_remote_get($url, $refresh
+            ? ['timeout' => 5, 'redirection' => 0, 'limit_response_size' => 2 * MB_IN_BYTES]
+            : ['timeout' => 15]);
 
         if (is_wp_error($response)) {
             return new WP_Error('api_request_failed', __('Fehler beim Abrufen der Daten.', 'evangelische-termine-ausgeben'), ['status' => 502]);
@@ -174,6 +223,13 @@ class DataFetcher
         // Prüfen, ob JSON oder ggf. XML - hier vereinfachen wir auf JSON.
         // Wenn XML: Nutzung von simplexml_load_string und Konvertierung zu Array.
         $data = json_decode($body, true);
+
+        // [] is a valid empty calendar. Errors, XML and truncated JSON are not.
+        if ($refresh) {
+            if (json_last_error() !== JSON_ERROR_NONE || !self::valid_event_rows($data) || substr(ltrim($body), 0, 1) !== '[') {
+                return new WP_Error('ln_eta_cache_response', __('Ungültige Antwort des Terminanbieters.', 'evangelische-termine-ausgeben'));
+            }
+        }
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             // Fallback: Prüfen ob XML

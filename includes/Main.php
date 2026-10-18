@@ -26,6 +26,8 @@ class Main
         $this->pluginFile = $pluginFile;
         new Blocks();
         new DataFetcher();
+        new CacheSync();
+        new CacheSettings();
     }
 
     /**

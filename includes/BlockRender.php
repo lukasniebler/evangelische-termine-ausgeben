@@ -9,6 +9,23 @@ use WP_REST_Request;
 
 class BlockRender
 {
+    private $eventLoader;
+
+    public function __construct(?callable $eventLoader = null, ?array $placeTypes = null)
+    {
+        $this->eventLoader = $eventLoader;
+        if ($placeTypes !== null) {
+            $this->placeTypeMap = $placeTypes;
+            $this->placeTypesLoaded = true;
+        }
+    }
+
+    public function cache_query(array $attributes): array
+    {
+        $attributes = wp_parse_args($attributes, ['limit' => 10]);
+        return $this->build_query_args($attributes, !$this->should_defer_limit($attributes));
+    }
+
     private array $placeTypeMap = [];
     private bool $placeTypesLoaded = false;
     private array $weekdayShortMap = [
@@ -22,6 +39,22 @@ class BlockRender
     ];
 
     public function render_block_blueprint(array $attributes = []): string
+    {
+        $html = $this->render_output($attributes);
+        if (!$this->eventLoader) {
+            $attributes['__ln_eta_place_types'] = $this->placeTypeMap;
+            CacheSync::observe('block', $this->cache_query($attributes), $attributes, self::cache_output($html));
+        }
+        return $html;
+    }
+
+    /** Wrapper attributes depend on the current Gutenberg render context, not events. */
+    public static function cache_output(string $html): string
+    {
+        return substr($html, strpos($html, '>') + 1, -6);
+    }
+
+    private function render_output(array $attributes): string
     {
         $defaults = [
             'id' => '',
@@ -348,6 +381,9 @@ class BlockRender
 
     private function fetch_events(array $queryArgs)
     {
+        if ($this->eventLoader) {
+            return ($this->eventLoader)($queryArgs);
+        }
         $request = new WP_REST_Request('GET', '/evangelische-termine-ausgeben/v1/data');
         foreach ($queryArgs as $key => $value) {
             $request->set_param($key, $value);
