@@ -4,7 +4,7 @@ Tags: events, calendar, church, block, evangelische termine
 Requires at least: 6.7
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -40,6 +40,12 @@ Yes. The existing HTML structure and styling are preserved. Events from another 
 
 == Changelog ==
 
+= 1.2.0 =
+* Add an optional cached XML feed helper for custom event detail pages, preserving public field labels and form field selection.
+* Limit additional feed requests and response sizes, prevent parallel refreshes and briefly back off after failures.
+* Preserve existing blocks and Legacy/Senior output; the additional feed is requested only by themes that explicitly use the helper.
+* Improve plugin-check metadata and protect development test files from direct web access.
+
 = 1.1.0 =
 * Support multiple comma-separated organizer IDs with a combined event limit and normalization of spaces and duplicate IDs.
 * Preserve single-organizer configurations and the HTML structure and styles of Legacy/Senior mode.
@@ -50,6 +56,9 @@ Yes. The existing HTML structure and styling are preserved. Events from another 
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Custom themes can use the optional event detail helper. Existing blocks and Legacy/Senior output remain unchanged. No settings changes or data migration are required.
 
 = 1.1.0 =
 To include multiple organizers, add their IDs to the relevant block. Existing single-organizer blocks and Legacy/Senior output are preserved. No migration is required.
