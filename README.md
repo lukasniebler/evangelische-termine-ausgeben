@@ -11,11 +11,20 @@ Die [offizielle Schnittstelle](https://handbuch.evangelische-termine.de/anzeige-
 
 Der Block wird dynamisch durch PHP ausgegeben. `save()` speichert deshalb keine statische Demo-Ausgabe. Vorhandene Blöcke mit dem früheren Platzhalter bleiben ladbar.
 
+## Optionale Daten für eigene Detailseiten
+
+Themes können `LN\EvangelischeTermineAusgeben\EventDetails::get($organizerId)` ausdrücklich aufrufen. Die Methode liefert bis zu 100 aktuelle Termine eines Veranstalters aus der ausführlichen öffentlichen XML-Ausgabe als `Veranstaltung`-Arrays, ergänzt um `_field_labels` und `_visible_fields`. Fehler liefern einen `WP_Error`; ein leeres erfolgreiches Ergebnis ist ein leeres Array. Die bestehenden Blöcke und REST-Antworten nutzen diesen Abruf nicht und bleiben unverändert. Es gibt keine automatische Umstellung der Legacy-/Senior-Ausgabe und keine notwendige Migration oder neue globale Einstellung.
+
+Der Abruf ist auf fünf Sekunden und 2 MiB beschränkt, nutzt einen einstündigen Cache und pausiert nach Fehlern für eine Minute. Eine Sperre pro Veranstalter verhindert gleichzeitige Abrufe. XML-Dokumente mit DTD werden abgelehnt; externe Ressourcen werden nicht aufgelöst. Ausgabe-Templates müssen Werte weiterhin escapen und ausschließlich geeignete öffentliche Felder anzeigen – das Rohformat enthält auch Verwaltungsfelder.
+
+Das Kirchen-Theme verwendet diese Erweiterung für richtig beschriftete Zusatzinformationen. Anmeldeformulare werden über `_poll_ID` verlinkt; die Anmeldung selbst und aktuelle Platzverfügbarkeit bleiben beim Anbieter. Details zur Feldbelegung stehen im [Handbuch](https://handbuch.evangelische-termine.de/exporte/platzhalter).
+
 ```sh
 npm run build
 npm run lint
 php tests/search.php /path/to/wordpress/wp-load.php
 php tests/organizers.php /path/to/wordpress/wp-load.php
+php tests/event-details.php /path/to/wordpress/wp-load.php
 ```
 
 Die Integrationstests verwenden kontrollierte Datenströme; sie schreiben keine Datenbankinhalte und rufen keine externen Termine ab. Der Mehrveranstalter-Test simuliert HTTP und den Plugin-Cache. Vier vor der Änderung erfasste HTML-Ausgaben aus Commit `b2fb7dd` sichern moderne und Legacy-Ausgabe einschließlich langer/kurzer Wochentage, Überschriften, Zeiten, Orten, Personen, Links und Zeilenklassen exakt ab. Weitere Prüfungen decken gemeinsame Limits, Filter, Cache-Schlüssel, ungültige Listen und Ausfälle ab. Für WordPress-Integrationstests muss die CLI-PHP-Version auch die Anforderungen des aktiven Themes erfüllen.
